@@ -1,0 +1,16 @@
+# ISO images
+*.iso
+
+# Object files
+*.o
+
+# Common binary / executable files
+*.exe
+*.out
+*.bin
+*.elf
+
+
+# Linux / Unix executables (no extension)
+a.out
+
