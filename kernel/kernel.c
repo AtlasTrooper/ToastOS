@@ -80,20 +80,30 @@ void terminal_putEntryAt(char c, u8 color, size_t x, size_t y)
   const size_t index = y * VGA_W + x;
   terminal_buff[index] = vga_entry(c,color);
 
+  if(c == '\n' && x+1<VGA_W){terminal_buff[index+1] = vga_entry(' ',color);}
+
 }
 
 void terminal_putchar(char c){
-
+  if(c == '\n' ){terminal_row+=1; terminal_col = -1; goto border;}
   terminal_putEntryAt(c, terminal_color, terminal_col, terminal_row);
-  
-  if(c == '\n'){terminal_row+=1; terminal_col = 0;}
 
-  if(++terminal_col==VGA_W){
-    terminal_col = 0;
-    if(++terminal_row == VGA_H){
-      terminal_row = 0;
+  border:
+    if(++terminal_col==VGA_W){
+      terminal_col = 0;
+      if(++terminal_row == VGA_H){
+        terminal_row = 0;
+
+        for(int r = 0; r < VGA_H-1; r ++){
+          for(int c = 0; c < VGA_W; c++){
+            terminal_buff[(r * VGA_W + c)] = terminal_buff[(r+1)*VGA_W + c];  
+          }
+        }
+        for(int c = 0; c < VGA_W; c++){
+          terminal_buff[(VGA_H-1) * VGA_W +c] = vga_entry(' ', terminal_color);
+        }
+      }
     }
-  }
 
 }
 
@@ -109,10 +119,12 @@ void terminal_writeString(const char * data){
   terminal_write(data, strlen(data));
 }
 
+void terminal_scrolling()
+
 void kernel_main(void){
 
   terminal_init();
-  terminal_writeString("Hello, Vsauce, Tomer here\n22");
+  terminal_writeString("Hello, Vsauce, Tomer here\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n22\n\n\n\n\nhola");
 
 }
 
