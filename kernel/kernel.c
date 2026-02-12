@@ -80,8 +80,6 @@ void terminal_putEntryAt(char c, u8 color, size_t x, size_t y)
   const size_t index = y * VGA_W + x;
   terminal_buff[index] = vga_entry(c,color);
 
-  if(c == '\n' && x+1<VGA_W){terminal_buff[index+1] = vga_entry(' ',color);}
-
 }
 
 void terminal_putchar(char c){
@@ -89,23 +87,29 @@ void terminal_putchar(char c){
   terminal_putEntryAt(c, terminal_color, terminal_col, terminal_row);
 
   border:
-    if(++terminal_col==VGA_W){
+    if(++terminal_col>=VGA_W){
       terminal_col = 0;
-      if(++terminal_row == VGA_H){
-        terminal_row = 0;
-
-        for(int r = 0; r < VGA_H-1; r ++){
-          for(int c = 0; c < VGA_W; c++){
-            terminal_buff[(r * VGA_W + c)] = terminal_buff[(r+1)*VGA_W + c];  
-          }
-        }
+      terminal_row +=1;
+    }
+    if(terminal_row >= VGA_H){
+      terminal_row = VGA_H-1;
+      terminal_col = 0;
+      // size_t start = 0;
+      // terminal_buff[start] = vga_entry('A',terminal_color);
+      for(int r = 0; r < VGA_H-1; r ++){
         for(int c = 0; c < VGA_W; c++){
-          terminal_buff[(VGA_H-1) * VGA_W +c] = vga_entry(' ', terminal_color);
+          const size_t index_dst = r*VGA_W+c;
+          const size_t index_src = ((r+1)*VGA_W)+c;
+          
+          terminal_buff[index_dst] = terminal_buff[index_src];  
         }
       }
+      for(int c = 0; c < VGA_W; c++){
+        const size_t index = (VGA_H-1)*VGA_W+c;
+        terminal_buff[index] = vga_entry(' ', terminal_color);
+      }
     }
-
-}
+  }
 
 void terminal_write(const char * data, size_t size){
   for(size_t i = 0; i < size; i ++){
@@ -119,14 +123,17 @@ void terminal_writeString(const char * data){
   terminal_write(data, strlen(data));
 }
 
-void terminal_scrolling()
+void terminal_scrolling();
 
 void kernel_main(void){
 
   terminal_init();
-  terminal_writeString("Hello, Vsauce, Tomer here\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n22\n\n\n\n\nhola");
-
-}
+  terminal_writeString("MIN\n");
+  terminal_writeString("Hello, Vsauce, Tomer here\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n22\n\n\n\n\nhola");
+  
+  if(terminal_row == VGA_H-1){terminal_writeString("MAX\n");}
+  terminal_writeString("\nBREAKDANCE");
+} 
 
 
 
