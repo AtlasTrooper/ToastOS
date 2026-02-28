@@ -32,7 +32,7 @@ void putchar(char c);
 void terminal_write(const char * data, size_t size);
 void putstr(const char * data);
 void terminal_scroll();
-
+void fb_move_cursor(unsigned short pos);
 
 static inline u8 vga_entry_color(enum vga_color fg, enum vga_color bg){
 
@@ -44,3 +44,4 @@ static inline u16 vga_entry(uchar uc, u8 color)
 {
  return (u16)uc | (u16) color << 8;
 }
+

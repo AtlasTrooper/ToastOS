@@ -1,5 +1,13 @@
 #include "qol.h"
 #include "vga.h"
+#include "io.h"
+//IO PORTS
+#define FB_COMMAND_PORT 0x3D4
+#define FB_DATA_PORT 0x3D5
+
+//IO port commands
+#define FB_HIGH_COM 14
+#define FB_LO_COM 15
 
 size_t strlen(const char * str){
   size_t len = 0;
@@ -18,6 +26,7 @@ size_t terminal_row;
 size_t terminal_col;
 u8 terminal_color;
 u16* terminal_buff = (u16*)VGA_MEM;
+u8 cursor_pos = 0;
 
 void terminal_init(void){
   
@@ -41,7 +50,8 @@ void terminal_putEntryAt(char c, u8 color, size_t x, size_t y)
 {
   const size_t index = y * VGA_W + x;
   terminal_buff[index] = vga_entry(c,color);
-
+  fb_move_cursor(index);
+  
 }
 
 void newLine(){
@@ -121,4 +131,11 @@ void terminal_scroll(){
 
 void terminal_clear(){
   terminal_init();
+}
+
+void fb_move_cursor(unsigned short pos){
+  outb(FB_COMMAND_PORT, FB_HIGH_COM);
+  outb(FB_DATA_PORT, ((pos >> 8) & 0x00FF));
+  outb(FB_COMMAND_PORT, FB_LO_COM);
+  outb(FB_DATA_PORT, pos & 0x00FF);
 }
