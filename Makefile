@@ -9,7 +9,8 @@ QEMU    = qemu-system-i386
 # ========================
 # Flags
 # ========================
-CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
+          -Ikernel/include -MMD -MP
 LDFLAGS = -T linker.ld -nostdlib
 
 # ========================
@@ -26,16 +27,19 @@ GRUB    = $(BOOT)/grub
 KERNEL_ELF = $(BUILD)/kernel.elf
 KERNEL_BIN = $(BOOT)/kernel.bin
 ISO        = $(BUILD)/toast.iso
+GRUB_CFG   = grub/grub.cfg
 
 # ========================
-# Sources
+# Source discovery
 # ========================
-C_SRC   = kernel/kernel.c
-ASM_SRC = kernel/boot.s
+C_SRCS   := $(wildcard kernel/*.c)
+ASM_SRCS := $(wildcard kernel/*.s)
 
-OBJS = \
-	$(BUILD)/kernel.o \
-	$(BUILD)/boot.o
+OBJS := \
+	$(C_SRCS:kernel/%.c=$(BUILD)/%.o) \
+	$(ASM_SRCS:kernel/%.s=$(BUILD)/%.o)
+
+DEPS := $(OBJS:.o=.d)
 
 # ========================
 # Default target
@@ -43,16 +47,16 @@ OBJS = \
 all: run
 
 # ========================
-# Compile C
+# Compile C sources
 # ========================
-$(BUILD)/kernel.o: $(C_SRC)
+$(BUILD)/%.o: kernel/%.c
 	mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # ========================
-# Assemble boot code
+# Assemble ASM sources
 # ========================
-$(BUILD)/boot.o: $(ASM_SRC)
+$(BUILD)/%.o: kernel/%.s
 	mkdir -p $(BUILD)
 	$(AS) $< -o $@
 
@@ -65,10 +69,10 @@ $(KERNEL_ELF): $(OBJS)
 # ========================
 # Prepare ISO tree
 # ========================
-$(KERNEL_BIN): $(KERNEL_ELF) grub/grub.cfg
+$(KERNEL_BIN): $(KERNEL_ELF) $(GRUB_CFG)
 	mkdir -p $(GRUB)
 	cp $(KERNEL_ELF) $(BOOT)/kernel.bin
-	cp grub/grub.cfg $(GRUB)/grub.cfg
+	cp $(GRUB_CFG) $(GRUB)/grub.cfg
 
 # ========================
 # Build ISO
@@ -87,5 +91,10 @@ run: $(ISO)
 # ========================
 clean:
 	rm -rf $(BUILD) $(ISO_DIR)
+
+# ========================
+# Dependency tracking
+# ========================
+-include $(DEPS)
 
 .PHONY: all run clean
