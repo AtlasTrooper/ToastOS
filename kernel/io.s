@@ -1,5 +1,5 @@
 .global outb 
-
+.global inb
 //outb will send a byte to an io port
 
 /*
@@ -13,3 +13,12 @@ outb:
     mov 4(%esp), %dx
     out %al, %dx
     ret
+
+/*inb will send a byte to the serial port and return it's data*/
+
+inb:
+      mov 4(%esp), %dx
+      in %dx, %al
+      ret
+
+      

@@ -1,26 +1,42 @@
-  global gdt
-  
-  gdtr DW 0 ;
-       DD 0 ;
+.section .data
+.align 4
 
-  setGdt:
-    mov AX, [esp+4]
-    mov [gdtr], AX
-    mov EAX, [ESP+8]
-    mov [gdtr+2], EAX
-    LGDT [gdtr]
-    RET
+.global gdt
+.global gdtr
 
-  reloadSegments:
-    /*Reload the CS register with code selector*/
-    JMP 0x08:.gdt_flush // 0x08 represents the code seg
-  
-  //flush the data segment registers
-  .gdt_flush:
-    mov AX, 0x10
-    mov DS, AX
-    mov ES, AX
-    mov FS, AX
-    mov GS, AX
-    mov SS, AX
-    RET
+gdtr:
+    .word 0          # limit
+    .long 0          # base
+
+
+.section .text
+.global setGdt
+.type setGdt, @function
+
+setGdt:
+    movw 4(%esp), %ax
+    movw %ax, gdtr
+
+    movl 8(%esp), %eax
+    movl %eax, gdtr+2
+
+    lgdt gdtr
+    ret
+
+
+.global reloadSegments
+.type reloadSegments, @function
+
+reloadSegments:
+    # Far jump to reload CS
+    ljmp $0x08, $gdt_flush
+
+
+gdt_flush:
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
+    ret

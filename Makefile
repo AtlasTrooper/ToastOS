@@ -13,6 +13,8 @@ CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
           -Ikernel/include -MMD -MP
 LDFLAGS = -T linker.ld -nostdlib
 
+QEMU_FLAGS = -serial stdio
+
 # ========================
 # Directories
 # ========================
@@ -84,7 +86,7 @@ $(ISO): $(KERNEL_BIN)
 # Run in QEMU
 # ========================
 run: $(ISO)
-	$(QEMU) -cdrom $<
+	$(QEMU) -cdrom $(QEMU_FLAGS) $<
 
 # ========================
 # Clean
