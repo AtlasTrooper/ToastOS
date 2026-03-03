@@ -86,7 +86,7 @@ $(ISO): $(KERNEL_BIN)
 # Run in QEMU
 # ========================
 run: $(ISO)
-	$(QEMU) -cdrom $(QEMU_FLAGS) $<
+	$(QEMU) -cdrom $< $(QEMU_FLAGS)
 
 # ========================
 # Clean
