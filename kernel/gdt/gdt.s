@@ -17,4 +17,11 @@ flushAndReload:
 
 flush_cs:
     ret
+
+
+.global setTSS
+.global reloadTSS
+
+
+
     
