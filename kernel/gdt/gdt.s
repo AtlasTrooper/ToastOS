@@ -1,5 +1,5 @@
 .global loadGDT
-.type flushAndReload, @function
+.global flushAndReload
 loadGDT:
     mov 4(%esp), %eax //loads a ptr to our gdt struct, (ptr size is 4 bytes) into the eax register
     lgdt (%eax) //loads the eax register data into our gdt
