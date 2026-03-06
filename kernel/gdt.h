@@ -63,6 +63,6 @@ void encode_gdt_seg(uint32_t index, uint32_t base, uint32_t lim, uint8_t access,
 void encode_tss_seg(uint32_t index, uint32_t ss0, uint32_t esp0);
 
 extern void load_gdt(uint32_t addr);
-extern void flush_n_reload(uint32_t addr);
+extern void flush();
 extern void load_tss();
 #endif

@@ -16,24 +16,27 @@ GDT gdt;
 void initGDT(){
     gdt.lim = (sizeof(gdtEntry)*6)-1; //Cause we got 6
     gdt.base = (uint32_t)&ent;
-    debug_print("Lim and base prepped");
+    //debug_print("Lim and base prepped");
     //encode our 6 entries
     encode_gdt_seg(0, 0, 0, 0, 0);
-    encode_gdt_seg(1, 0, 0xFFFFF, 0x9A, 0xC);
-    encode_gdt_seg(2, 0, 0xFFFFF, 0x92, 0xC);
+    encode_gdt_seg(1, 0, 0xFFFFF, 0x9A, 0xC0);
+    encode_gdt_seg(2, 0, 0xFFFFF, 0x92, 0xC0);
 
-    encode_gdt_seg(3, 0, 0xFFFFF, 0xFA, 0xC);
-    encode_gdt_seg(4, 0, 0xFFFFF, 0xF2, 0xC);
+    encode_gdt_seg(3, 0, 0xFFFFF, 0xFA, 0xC0);
+    encode_gdt_seg(4, 0, 0xFFFFF, 0xF2, 0xC0);
 
     encode_tss_seg(5, 0x10, 0x00);
 
-    debug_print("entries encoded");
+    //debug_print("entries encoded");
 
     load_gdt((uint32_t)&gdt);
-    flush_n_reload((uint32_t)&gdt);
+    //debug_print("GDT LOADED");
+    flush();
+    //debug_print("Flushed");
     load_tss();
     
-    debug_print("post asm functions");
+    //debug_print("post asm functions");
+    debug_print("GDT IS UP AND RUNNING");
     
 }
 void encode_gdt_seg(uint32_t index, uint32_t base, uint32_t lim, uint8_t access, uint8_t gran){
@@ -41,8 +44,10 @@ void encode_gdt_seg(uint32_t index, uint32_t base, uint32_t lim, uint8_t access,
     ent[index].base_mid = (base >> 16)&0xFF;
     ent[index].base_high = (base >> 24) & 0xFF;
 
-    ent[index].lim = (lim & 0xFFFF);
+    ent[index].lim = (lim & 0xFFFF);//takes limit low
     ent[index].access = access;
+
+    //Takes our limit high and combines it with our granularity flag
     ent[index].flags = ((lim >> 16) & 0x0F) |(gran & 0xF0);
 
 }
