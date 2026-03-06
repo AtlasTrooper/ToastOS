@@ -34,12 +34,11 @@ GRUB_CFG   = grub/grub.cfg
 # ========================
 # Source discovery
 # ========================
-C_SRCS   := $(wildcard kernel/*.c)
-ASM_SRCS := $(wildcard kernel/*.s)
+C_SRCS   := $(shell find kernel -name "*.c")
+ASM_SRCS := $(shell find kernel -name "*.s")
 
-OBJS := \
-	$(C_SRCS:kernel/%.c=$(BUILD)/%.o) \
-	$(ASM_SRCS:kernel/%.s=$(BUILD)/%.o)
+OBJS := $(patsubst kernel/%.c,$(BUILD)/%.o,$(C_SRCS)) \
+        $(patsubst kernel/%.s,$(BUILD)/%.o,$(ASM_SRCS))
 
 DEPS := $(OBJS:.o=.d)
 
@@ -52,14 +51,14 @@ all: run
 # Compile C sources
 # ========================
 $(BUILD)/%.o: kernel/%.c
-	mkdir -p $(BUILD)
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # ========================
 # Assemble ASM sources
 # ========================
 $(BUILD)/%.o: kernel/%.s
-	mkdir -p $(BUILD)
+	mkdir -p $(dir $@)
 	$(AS) $< -o $@
 
 # ========================

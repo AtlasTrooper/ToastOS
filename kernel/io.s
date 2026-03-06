@@ -9,15 +9,14 @@ stack:[esp + 8] the data byte
 */
 
 outb:
-    movw 8(%esp), %al
-    movw 4(%esp), %dx
+    mov 8(%esp), %al
+    mov 4(%esp), %dx
     out %al, %dx
     ret
 
 /*inb will send a byte to the serial port and return it's data*/
 
 inb:
-      movw 4(%esp), %dx
+      mov 4(%esp), %dx
       in %dx, %al
       ret
-

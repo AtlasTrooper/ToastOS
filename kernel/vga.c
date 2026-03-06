@@ -1,4 +1,3 @@
-#include "qol.h"
 #include "vga.h"
 #include "io.h"
 //IO PORTS
@@ -24,9 +23,9 @@ size_t strlen(const char * str){
 
 size_t terminal_row;
 size_t terminal_col;
-u8 terminal_color;
-u16* terminal_buff = (u16*)VGA_MEM;
-u8 cursor_pos = 0;
+uint8_t terminal_color;
+uint16_t* terminal_buff = (uint16_t*)VGA_MEM;
+uint8_t cursor_pos = 0;
 
 void terminal_init(void){
   
@@ -42,11 +41,11 @@ void terminal_init(void){
 
 }
 
-void terminal_set_color(u8 color){
+void terminal_set_color(uint8_t color){
   terminal_color = color;
 }
 
-void terminal_putEntryAt(char c, u8 color, size_t x, size_t y)
+void terminal_putEntryAt(char c, uint8_t color, size_t x, size_t y)
 {
   const size_t index = y * VGA_W + x;
   terminal_buff[index] = vga_entry(c,color);
@@ -84,7 +83,7 @@ void putchar(char c){
       if(terminal_col == VGA_W){
         newLine();
       }
-      u16 tabAmount = 4-(terminal_col%4);
+      uint16_t tabAmount = 4-(terminal_col%4);
       while(tabAmount !=0){
         terminal_putEntryAt(' ', terminal_color, terminal_col++, terminal_row);
         tabAmount-=1;

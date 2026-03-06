@@ -1,5 +1,4 @@
 #include "qol.h"
-
 enum vga_color {
 
   VGA_BLACK=0,
@@ -26,22 +25,22 @@ enum vga_color {
 size_t strlen(const char * str);
 void newLine();
 void terminal_init(void);
-void terminal_set_color(u8 color);
-void terminal_putEntryAt(char c, u8 color, size_t x, size_t y);
+void terminal_set_color(uint8_t color);
+void terminal_putEntryAt(char c, uint8_t color, size_t x, size_t y);
 void putchar(char c);
 void terminal_write(const char * data, size_t size);
 void putstr(const char * data);
 void terminal_scroll();
 void fb_move_cursor(unsigned short pos);
 
-static inline u8 vga_entry_color(enum vga_color fg, enum vga_color bg){
+static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg){
 
 return fg | bg << 4;
 
 }
 
-static inline u16 vga_entry(uchar uc, u8 color)
+static inline uint16_t vga_entry(unsigned char uc, uint8_t color)
 {
- return (u16)uc | (u16) color << 8;
+ return (uint16_t)uc | (uint16_t) color << 8;
 }
 

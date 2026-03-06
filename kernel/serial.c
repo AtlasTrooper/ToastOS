@@ -62,9 +62,10 @@ void serial_write(unsigned int com, char* a){
     }
 }
 
-void serial_test_basic() {
-    serial_write(SERIAL_COM1_START, "[DEBUG]: TESTING\n");
-
+void debug_print(char *a) {
+    serial_write(SERIAL_COM1_START, "[DEBUG]:");
+    serial_write(SERIAL_COM1_START, a);
+    serial_write(SERIAL_COM1_START, "\n");
 }
 
 void serial_init(unsigned short com){
@@ -75,6 +76,6 @@ void serial_init(unsigned short com){
     serial_config_buff(com);
     serial_config_modem(com);
 
-    serial_test_basic();
+    //serial_test_basic();
 }
 

@@ -31,7 +31,7 @@ int serial_is_transmit_empty(unsigned int com);
 int serial_recevied(unsigned int com);
 char serial_read(unsigned int com);
 void serial_write(unsigned int com, char* a);
-void serial_test_basic();
+void debug_print(char *a);
 void serial_init(unsigned short com);
 
 
