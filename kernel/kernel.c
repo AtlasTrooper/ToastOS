@@ -8,7 +8,7 @@
 #endif
 
 #if !defined(__i386__)
-#error "This tutorial needs to be compiled with a ix86-elf comp"
+#error "This os needs to be compiled with an ix86-elf comp"
 #endif
 
 
