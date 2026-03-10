@@ -71,14 +71,14 @@ common_handler:
     pushal
     mov (%ds), %eax
     push %eax
-    mov %cr2, %eax
+    mov (%cr2), %eax
     push %eax
 
     mov $0x10, %ax
-    mov %ax, %ds
-    mov %ax, %es
-    mov %ax, %fs
-    mov %ax, %gs
+    mov (%ax), %ds
+    mov (%ax), %es
+    mov (%ax), %fs
+    mov (%ax), %gs
 
     push %esp 
 
@@ -86,10 +86,10 @@ common_handler:
 
     add $8, %esp
     pop %ebx
-    mov %bx, %ds
-    mov %bx, %es
-    mov %bx, %fs
-    mov %bx, %gs
+    mov (%bx), %ds
+    mov (%bx), %es
+    mov (%bx), %fs
+    mov (%bx), %gs
 
     popal
     add $8, %esp

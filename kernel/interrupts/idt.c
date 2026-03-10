@@ -88,6 +88,11 @@ void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t 
     ent[index].base_high = ((base >> 16)&0xFFFF);
 }
 
-void isr_handler(cpu_state cpu, stack_state stack, uint32_t interrupt_num){
-    
+void isr_handler(cpu_state *cpu, stack_state *stack){
+    if(stack->interr_num < 32){
+        putstr(excep_trace[stack->interr_num]);
+        putstr("\n");
+        putstr("[ERROR]: Halting System");
+        while(1);
+    }
 }

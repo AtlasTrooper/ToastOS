@@ -43,6 +43,8 @@ typedef struct PACKED cpu_state{
 }cpu_state;
 
 typedef struct PACKED stack_state{
+    uint32_t interr_num;
+
     uint32_t error_code;
     uint32_t eip;
     uint32_t cs;
@@ -89,9 +91,8 @@ unsigned char *excep_trace[] = {
 };
 
 void isr_handler(
-    cpu_state cpu,
-    stack_state stack,
-    uint32_t interrupt_num
+    cpu_state *cpu,
+    stack_state *stack,
 );
 
 #pragma region ISRs
