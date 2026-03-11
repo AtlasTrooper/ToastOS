@@ -1,5 +1,8 @@
 #include "../qol.h"
 
+#define GDT_CS 0x08
+#define INT_GATE_FLAGS 0x8E
+
 #define PIC1		0x20		/* IO base address for master PIC */
 #define PIC2		0xA0		/* IO base address for slave PIC */
 #define PIC1_COMMAND	PIC1
@@ -7,6 +10,7 @@
 #define PIC2_COMMAND	PIC2
 #define PIC2_DATA	(PIC2+1)
 #define EOI 0x20 //end of interrupt
+
 typedef struct PACKED IDT{
     uint32_t base;
     uint16_t lim; //sizeof IDT -1
@@ -34,46 +38,6 @@ typedef struct PACKED system_state{
 }system_state;
 
 extern void loadIDT(uint32_t);
-
-unsigned char *excep_trace[] = {
-    "Divide Error (#DE)",
-    "Debug Exception (#DB)",
-    "NMI Interrupt (NMI)",
-    "Breakpoint (#BP)",
-    "Overflow (#OF)",
-    "BOUND Range Exceeded (#BR)",
-    "Invalid Opcode (#UD)",
-    "Device Not Available (#NM)",
-    "Double Fault (#DF)",
-    "Coprocessor Segment Overrun",
-    "Invalid TSS (#TS)",
-    "Segment Not Present (#NP)",
-    "Stack-Segment Fault (#SS)",
-    "General Protection (#GP)",
-    "Page Fault (#PF)",
-    "Intel Reserved",
-    "x87 FPU Floating-Point Error (#MF)",
-    "Alignment Check (#AC)",
-    "Machine Check (#MC)",
-    "SIMD Floating-Point Exception (#XM)",
-    "Virtualization Exception (#VE)",
-    "Control Protection Exception (#CP)",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"
-};
-
-void * irq_map[16]{
-    0,0,0,0,0,0,0,0
-    0,0,0,0,0,0,0,0
-}
 
 void initIDT();
 void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags);

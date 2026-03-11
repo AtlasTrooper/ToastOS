@@ -2,31 +2,28 @@
 loadIDT:
     mov 4(%esp), %eax
     lidt (%eax)
-    //do I need to call sti here?
     sti
     ret
 
-//do I need to cli in the macros?
+#ISRs_______________________________
 
-//ISRs_______________________________
-
-//no error code
+# Without error code
 .macro NO_ERRORCODE_handler param
-    .global interrupt_handler_ \param
-        interrupt_handler_ \param:
-                cli
-                pushl $0
-                pushl \param
-                jmp isr_common_handler
+.global isr\param
+    isr\param:
+            cli
+            pushl $0
+            pushl $\param
+            jmp isr_common_handler
 .endm
 
-//error code
+#With error code
 .macro ERRORCODE_handler param
-    .global interrupt_handler_ \param
-        interrupt_handler_ \param:
-            cli
-            pushl \param
-            jmp isr_common_handler
+.global isr\param
+    isr\param:
+        cli
+        pushl $\param
+        jmp isr_common_handler
 .endm
 
 NO_ERRORCODE_handler 0
@@ -36,7 +33,7 @@ NO_ERRORCODE_handler 3
 NO_ERRORCODE_handler 4
 NO_ERRORCODE_handler 5
 NO_ERRORCODE_handler 6
-NO_ERRORCODE_handler 7 //cause the code is 0
+NO_ERRORCODE_handler 7 #cause the code is 0
 
 ERRORCODE_handler 8
 
@@ -51,7 +48,7 @@ ERRORCODE_handler 14
 NO_ERRORCODE_handler 15
 NO_ERRORCODE_handler 16
 
-ERRORCODE_handler 17 //cause the code is 0
+ERRORCODE_handler 17 #cause the code is 0
 
 NO_ERRORCODE_handler 18
 NO_ERRORCODE_handler 19
@@ -80,15 +77,14 @@ isr_common_handler:
     push %gs
     
     mov $0x10, %ax
-    mov (%ax), %ds
-    mov (%ax), %es
-    mov (%ax), %fs
-    mov (%ax), %gs
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
 
-    mov (%esp), %eax
+    mov %esp, %eax
     push %eax
-    mov isr_handler, %eax  
-    call %eax
+    call isr_handler
 
     pop %eax
     pop %gs
@@ -101,15 +97,15 @@ isr_common_handler:
     iret
 
 
-//IRQs
+#IRQs___________________________
 
 .macro IRQ_ param, vector
-    .global irq\param
-        irq\param:
-            //cli?
-            pushl $0
-            pushl $\vector
-            jmp irq_common_handler
+.global irq\param
+    irq\param:
+        cli
+        pushl $0
+        pushl $\vector
+        jmp irq_common_handler
 .endm
 
 IRQ_ 0, 32
@@ -140,15 +136,14 @@ irq_common_handler:
     push %gs
     
     mov $0x10, %ax
-    mov (%ax), %ds
-    mov (%ax), %es
-    mov (%ax), %fs
-    mov (%ax), %gs
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
 
-    mov (%esp), %eax
+    mov %esp, %eax
     push %eax
-    mov irq_handler, %eax  
-    call %eax
+    call irq_handler
 
     pop %eax
     pop %gs

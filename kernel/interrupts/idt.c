@@ -1,20 +1,56 @@
 #include "idt.h"
 #include "../io.h"
 #include "../serial.h"
-
-#define GDT_CS 0x08
-#define INT_GATE_FLAGS 0x8E
+#include "../vga.h"
 
 IDT idt;
-idt_entry ent[256];
-cpu_state cpu;
-stack_state stack;
+idt_entry idt_ent[256];
+system_state *system;
 
+const char *excep_trace[] = {
+    "Divide Error (#DE)",
+    "Debug Exception (#DB)",
+    "NMI Interrupt (NMI)",
+    "Breakpoint (#BP)",
+    "Overflow (#OF)",
+    "BOUND Range Exceeded (#BR)",
+    "Invalid Opcode (#UD)",
+    "Device Not Available (#NM)",
+    "Double Fault (#DF)",
+    "Coprocessor Segment Overrun",
+    "Invalid TSS (#TS)",
+    "Segment Not Present (#NP)",
+    "Stack-Segment Fault (#SS)",
+    "General Protection (#GP)",
+    "Page Fault (#PF)",
+    "Intel Reserved",
+    "x87 FPU Floating-Point Error (#MF)",
+    "Alignment Check (#AC)",
+    "Machine Check (#MC)",
+    "SIMD Floating-Point Exception (#XM)",
+    "Virtualization Exception (#VE)",
+    "Control Protection Exception (#CP)",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved"
+};
+
+void * irq_map[16] = {
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0
+};
 
 void initIDT(){
-    idt.base = (uint32_t)&idt;
+    idt.base = (uint32_t)&idt_ent;
     idt.lim = (256*sizeof(idt_entry))-1;
-    memset(&idt, 0, sizeof(idt_entry)*256);
+    memset(&idt_ent, 0, sizeof(idt_entry)*256);
 
     pic_config();
 
@@ -28,11 +64,11 @@ void initIDT(){
 }
 
 void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags){
-    ent[index].base_low = (base&0xFFFF);
-    ent[index].sel = sel;
-    ent[index].zero = 0;
-    ent[index].flags = flags | 0x60;
-    ent[index].base_high = ((base >> 16)&0xFFFF);
+   idt_ent[index].base_lo = (base&0xFFFF);
+   idt_ent[index].selector = sel;
+   idt_ent[index].zero = 0;
+   idt_ent[index].flags = flags | 0x60;
+   idt_ent[index].base_hi = ((base >> 16)&0xFFFF);
 }
 
 void isr_handler(system_state *sys){
@@ -40,7 +76,7 @@ void isr_handler(system_state *sys){
         putstr(excep_trace[sys->interr_num]);
         putstr("\n");
         putstr("[ERROR]: Halting System");
-        while(1);
+        for(;;);
     }
 }
 
@@ -50,7 +86,7 @@ void irq_handler(system_state *sys){
     handler = irq_map[sys->interr_num-32];
 
     if(handler){handler(sys);}
-    if(sys-interr_num >=40){
+    if(sys->interr_num >=40){
         outb(PIC2_COMMAND, EOI);
     }
     outb(PIC1_COMMAND, EOI);
@@ -116,10 +152,10 @@ void pic_config(){
     outb(PIC2_DATA, 0x02);
 
     outb(PIC1_DATA, 0x01);
-    oitb(PIC2_DATA, 0x01);
+    outb(PIC2_DATA, 0x01);
 
     outb(PIC1_DATA, 0x0);
-    oubt(PIC2_DATA, 0x0);
+    outb(PIC2_DATA, 0x0);
 }
 
 void irq_config(){
