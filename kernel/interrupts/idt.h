@@ -6,7 +6,7 @@
 #define PIC1_DATA	(PIC1+1)
 #define PIC2_COMMAND	PIC2
 #define PIC2_DATA	(PIC2+1)
-
+#define EOI 0x20 //end of interrupt
 typedef struct PACKED IDT{
     uint32_t base;
     uint16_t lim; //sizeof IDT -1
@@ -26,32 +26,12 @@ typedef struct PACKED idt_entry{
 Task Gate: 0x85 (p=1, dpl=0b00, type=0b0101 => type_attributes=0b1000_0101=0x85)
 */
 
-typedef struct PACKED cpu_state{
-
-    uint32_t cr2;
-    uint32_t ds;
-
-    uint32_t eax;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t esp;    
-    uint32_t ebp;
-    uint32_t esi;
-    uint32_t edi;
-
-}cpu_state;
-
-typedef struct PACKED stack_state{
-    uint32_t interr_num;
-
-    uint32_t error_code;
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-    uint32_t useresp;
-    uint32_t ss;
-}stack_state;
+typedef struct PACKED system_state{
+    uint32_t gs, fs, es, ds;
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    uint32_t interr_num, error_code;
+    uint32_t eip, cs, eflags, useresp, ss;
+}system_state;
 
 extern void loadIDT(uint32_t);
 
@@ -90,10 +70,20 @@ unsigned char *excep_trace[] = {
     "Reserved"
 };
 
-void isr_handler(
-    cpu_state *cpu,
-    stack_state *stack,
-);
+void * irq_map[16]{
+    0,0,0,0,0,0,0,0
+    0,0,0,0,0,0,0,0
+}
+
+void initIDT();
+void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags);
+void isr_handler(system_state *system);
+void irq_handler(system_state *sys);
+void irq_assign_handler(int irq, void (*handler)(system_state *sys));
+void irq_remove_handler(int irq);
+void isr_config();
+void pic_config();
+void irq_config();
 
 #pragma region ISRs
 extern void isr0();
@@ -134,6 +124,22 @@ extern void isr177();
 
 #pragma endregion ISRs
 
+#pragma region IRQs
+extern void irq0();
+extern void irq1();
+extern void irq2();
+extern void irq3();
+extern void irq4();
+extern void irq5();
+extern void irq6();
+extern void irq7();
+extern void irq8();
+extern void irq9();
+extern void irq10();
+extern void irq11();
+extern void irq12();
+extern void irq13();
+extern void irq14();
+extern void irq15();
+#pragma endregion IRQs
 
-void initIDT();
-void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags);

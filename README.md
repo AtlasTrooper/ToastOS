@@ -16,6 +16,11 @@ Upon reaching Shell stage, we will have implemented a basic vga driver, printf, 
 Credits and Sources:
 
 OSdev wiki: https://wiki.osdev.org/Expanded_Main_Page
+
+OSdever paper&tutorial archive: http://www.osdever.net/tutorials/
+
 The little OS book: https://littleosbook.github.io
 
 printf implementation by Scott Cosentino: https://gitlab.com/olivestem/Jazz2-0/-/blob/main/src/stdlib/stdio.c?ref_type=heads
+
+

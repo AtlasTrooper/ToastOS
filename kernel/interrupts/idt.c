@@ -16,24 +16,56 @@ void initIDT(){
     idt.lim = (256*sizeof(idt_entry))-1;
     memset(&idt, 0, sizeof(idt_entry)*256);
 
-    #pragma region PIC_CONFIG
-    outb(PIC1_COMMAND, 0x11);
-    outb(PIC2_COMMAND, 0x11);
+    pic_config();
 
-    outb(PIC1_DATA, 0x20);
-    outb(PIC2_DATA, 0x28);
+    isr_config();
 
-    outb(PIC1_DATA, 0x04);
-    outb(PIC2_DATA, 0x02);
+    irq_config();
+    
+    loadIDT((uint32_t)&idt);
+    //encode all of our interrupts
+    debug_print("INTERRUPTS LOADED AND READY");
+}
 
-    outb(PIC1_DATA, 0x01);
-    oitb(PIC2_DATA, 0x01);
+void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags){
+    ent[index].base_low = (base&0xFFFF);
+    ent[index].sel = sel;
+    ent[index].zero = 0;
+    ent[index].flags = flags | 0x60;
+    ent[index].base_high = ((base >> 16)&0xFFFF);
+}
 
-    outb(PIC1_DATA, 0x0);
-    oubt(PIC2_DATA, 0x0);
-    #pragma endregion PIC_CONFIG
+void isr_handler(system_state *sys){
+    if(sys->interr_num < 32){ //0x20
+        putstr(excep_trace[sys->interr_num]);
+        putstr("\n");
+        putstr("[ERROR]: Halting System");
+        while(1);
+    }
+}
 
-    #pragma region ISRs
+void irq_handler(system_state *sys){
+    void (*handler)(system_state *sys);
+
+    handler = irq_map[sys->interr_num-32];
+
+    if(handler){handler(sys);}
+    if(sys-interr_num >=40){
+        outb(PIC2_COMMAND, EOI);
+    }
+    outb(PIC1_COMMAND, EOI);
+}
+
+void irq_assign_handler(int irq, void (*handler)(system_state *sys)){
+    irq_map[irq] = handler;
+}
+
+void irq_remove_handler(int irq){
+    irq_map[irq] = 0;
+}
+
+void isr_config(){
+
     encode_interrupt_gate(0, (uint32_t)isr0,GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(1, (uint32_t)isr1,GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(2, (uint32_t)isr2,GDT_CS, INT_GATE_FLAGS);
@@ -70,29 +102,43 @@ void initIDT(){
     //These are used for sys calls
     encode_interrupt_gate(128, (uint32_t)isr128, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(177, (uint32_t)isr177, GDT_CS, INT_GATE_FLAGS);
-
-
-    #pragma endregion ISRs
     
-    
-    loadIDT((uint32_t)&idt);
-    //encode all of our interrupts
-    debug_print("INTERRUPTS LOADED AND READY");
 }
 
-void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags){
-    ent[index].base_low = (base&0xFFFF);
-    ent[index].sel = sel;
-    ent[index].zero = 0;
-    ent[index].flags = flags | 0x60;
-    ent[index].base_high = ((base >> 16)&0xFFFF);
+void pic_config(){
+    outb(PIC1_COMMAND, 0x11);
+    outb(PIC2_COMMAND, 0x11);
+
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
+
+    outb(PIC1_DATA, 0x04);
+    outb(PIC2_DATA, 0x02);
+
+    outb(PIC1_DATA, 0x01);
+    oitb(PIC2_DATA, 0x01);
+
+    outb(PIC1_DATA, 0x0);
+    oubt(PIC2_DATA, 0x0);
 }
 
-void isr_handler(cpu_state *cpu, stack_state *stack){
-    if(stack->interr_num < 32){
-        putstr(excep_trace[stack->interr_num]);
-        putstr("\n");
-        putstr("[ERROR]: Halting System");
-        while(1);
-    }
+void irq_config(){
+
+    encode_interrupt_gate(32, (uint32_t)irq0, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(33, (uint32_t)irq1, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(34, (uint32_t)irq2, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(35, (uint32_t)irq3, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(36, (uint32_t)irq4, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(37, (uint32_t)irq5, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(38, (uint32_t)irq6, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(39, (uint32_t)irq7, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(40, (uint32_t)irq8, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(41, (uint32_t)irq9, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(42, (uint32_t)irq10, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(43, (uint32_t)irq11, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(44, (uint32_t)irq12, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(45, (uint32_t)irq13, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(46, (uint32_t)irq14, GDT_CS, INT_GATE_FLAGS);
+    encode_interrupt_gate(47, (uint32_t)irq15, GDT_CS, INT_GATE_FLAGS);
+
 }

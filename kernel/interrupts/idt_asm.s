@@ -3,25 +3,30 @@ loadIDT:
     mov 4(%esp), %eax
     lidt (%eax)
     //do I need to call sti here?
+    sti
     ret
 
 //do I need to cli in the macros?
 
+//ISRs_______________________________
+
 //no error code
 .macro NO_ERRORCODE_handler param
-.global interrupt_handler_ param
-interrupt_handler_ param:
-    pushl $0
-    pushl \param
-    jmp common_handler
+    .global interrupt_handler_ \param
+        interrupt_handler_ \param:
+                cli
+                pushl $0
+                pushl \param
+                jmp isr_common_handler
 .endm
 
 //error code
 .macro ERRORCODE_handler param
-.global interrupt_handler_ param
-interrupt_handler_ param:
-    pushl \param
-    jmp common_handler
+    .global interrupt_handler_ \param
+        interrupt_handler_ \param:
+            cli
+            pushl \param
+            jmp isr_common_handler
 .endm
 
 NO_ERRORCODE_handler 0
@@ -67,32 +72,90 @@ NO_ERRORCODE_handler 177
 
 .extern isr_handler
 
-common_handler:
+isr_common_handler:
     pushal
-    mov (%ds), %eax
-    push %eax
-    mov (%cr2), %eax
-    push %eax
-
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    
     mov $0x10, %ax
     mov (%ax), %ds
     mov (%ax), %es
     mov (%ax), %fs
     mov (%ax), %gs
 
-    push %esp 
+    mov (%esp), %eax
+    push %eax
+    mov isr_handler, %eax  
+    call %eax
 
-    call isr_handler
-
-    add $8, %esp
-    pop %ebx
-    mov (%bx), %ds
-    mov (%bx), %es
-    mov (%bx), %fs
-    mov (%bx), %gs
-
+    pop %eax
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
     popal
     add $8, %esp
-    //Sti?
+    
     iret
 
+
+//IRQs
+
+.macro IRQ_ param, vector
+    .global irq\param
+        irq\param:
+            //cli?
+            pushl $0
+            pushl $\vector
+            jmp irq_common_handler
+.endm
+
+IRQ_ 0, 32
+IRQ_ 1, 33
+IRQ_ 2, 34
+IRQ_ 3, 35
+IRQ_ 4, 36
+IRQ_ 5, 37
+IRQ_ 6, 38
+IRQ_ 7, 39
+IRQ_ 8, 40
+IRQ_ 9, 41
+IRQ_ 10, 42
+IRQ_ 11, 43
+IRQ_ 12, 44
+IRQ_ 13, 45
+IRQ_ 14, 46
+IRQ_ 15, 47
+
+
+.extern irq_handler
+
+irq_common_handler:
+    pushal
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    
+    mov $0x10, %ax
+    mov (%ax), %ds
+    mov (%ax), %es
+    mov (%ax), %fs
+    mov (%ax), %gs
+
+    mov (%esp), %eax
+    push %eax
+    mov irq_handler, %eax  
+    call %eax
+
+    pop %eax
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popal
+    add $8, %esp
+    
+    iret
