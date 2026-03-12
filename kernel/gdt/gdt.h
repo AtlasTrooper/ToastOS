@@ -1,7 +1,7 @@
 
 #ifndef INCLUDE_GDT_H
 #define INCLUDE_GDT_H
-#include "qol.h"
+#include "../qol.h"
 typedef struct PACKED gdtEntry{
     uint16_t lim;
     uint16_t base_low;     

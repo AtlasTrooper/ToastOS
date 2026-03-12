@@ -72,6 +72,7 @@ void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t 
 }
 
 void isr_handler(system_state *sys){
+    //debug_print("\nERRRRRR\n");
     if(sys->interr_num < 32){ //0x20
         putstr(excep_trace[sys->interr_num]);
         putstr("\n");
@@ -81,6 +82,7 @@ void isr_handler(system_state *sys){
 }
 
 void irq_handler(system_state *sys){
+    debug_print("\nChoo choo\n");
     void (*handler)(system_state *sys);
 
     handler = irq_map[sys->interr_num-32];
@@ -138,7 +140,7 @@ void isr_config(){
     //These are used for sys calls
     encode_interrupt_gate(128, (uint32_t)isr128, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(177, (uint32_t)isr177, GDT_CS, INT_GATE_FLAGS);
-    
+    //debug_print("ISRs configured");
 }
 
 void pic_config(){
@@ -156,6 +158,7 @@ void pic_config(){
 
     outb(PIC1_DATA, 0x0);
     outb(PIC2_DATA, 0x0);
+    //debug_print("PIC configured");
 }
 
 void irq_config(){
@@ -176,5 +179,5 @@ void irq_config(){
     encode_interrupt_gate(45, (uint32_t)irq13, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(46, (uint32_t)irq14, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(47, (uint32_t)irq15, GDT_CS, INT_GATE_FLAGS);
-
+    //debug_print("IRQs configured");
 }

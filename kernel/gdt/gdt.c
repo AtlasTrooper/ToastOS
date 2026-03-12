@@ -1,5 +1,5 @@
 #include "gdt.h"
-#include "serial.h"
+#include "../serial.h"
 #define SEGMENT_COUNT 6
 /*GDT Structure:
 1. Null descriptor

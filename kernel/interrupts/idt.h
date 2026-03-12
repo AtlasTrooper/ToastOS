@@ -12,8 +12,8 @@
 #define EOI 0x20 //end of interrupt
 
 typedef struct PACKED IDT{
-    uint32_t base;
     uint16_t lim; //sizeof IDT -1
+    uint32_t base;
 }IDT;
 
 typedef struct PACKED idt_entry{
@@ -41,7 +41,7 @@ extern void loadIDT(uint32_t);
 
 void initIDT();
 void encode_interrupt_gate(uint32_t index, uint32_t base, uint16_t sel, uint8_t flags);
-void isr_handler(system_state *system);
+void isr_handler(system_state *sys);
 void irq_handler(system_state *sys);
 void irq_assign_handler(int irq, void (*handler)(system_state *sys));
 void irq_remove_handler(int irq);

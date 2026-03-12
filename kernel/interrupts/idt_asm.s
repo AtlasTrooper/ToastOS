@@ -11,10 +11,10 @@ loadIDT:
 .macro NO_ERRORCODE_handler param
 .global isr\param
     isr\param:
-            cli
-            pushl $0
-            pushl $\param
-            jmp isr_common_handler
+        cli
+        pushl $0
+        pushl $\param
+        jmp isr_common_handler
 .endm
 
 #With error code

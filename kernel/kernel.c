@@ -1,7 +1,7 @@
 #include "qol.h"
 #include "vga.h"
 #include "serial.h"
-#include "gdt.h"
+#include "gdt/gdt.h"
 #include "interrupts/idt.h"
 
 #if defined(__linux__)
@@ -22,10 +22,6 @@ void kernel_main(void){
   putstr("=================================================================\n");
 
   initIDT();
-  
-
-  asm volatile ("int $3");
-
 } 
 
 

@@ -1,5 +1,6 @@
 .global outb 
 .global inb
+.global serial_putc
 //outb will send a byte to an io port
 
 /*
@@ -20,3 +21,14 @@ inb:
       mov 4(%esp), %dx
       in %dx, %al
       ret
+
+serial_putc:
+    push %ebp
+    mov %esp, %ebp
+
+    mov 8(%ebp), %al   # char
+    mov $0x3F8, %dx
+    out %al, %dx
+
+    pop %ebp
+    ret
