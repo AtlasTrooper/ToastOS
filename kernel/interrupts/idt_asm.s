@@ -93,7 +93,7 @@ isr_common_handler:
     pop %ds
     popal
     add $8, %esp
-    
+    sti
     iret
 
 
@@ -152,5 +152,5 @@ irq_common_handler:
     pop %ds
     popal
     add $8, %esp
-    
+    sti
     iret

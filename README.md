@@ -17,7 +17,10 @@ Credits and Sources:
 
 OSdev wiki: https://wiki.osdev.org/Expanded_Main_Page
 
-OSdever paper&tutorial archive: http://www.osdever.net/tutorials/
+OSdever paper&tutorial archive: 
+
+http://www.osdever.net/tutorials/
+http://www.osdever.net/bkerndev/Docs/intro.htm
 
 The little OS book: https://littleosbook.github.io
 

@@ -3,6 +3,7 @@
 #include "serial.h"
 #include "gdt/gdt.h"
 #include "interrupts/idt.h"
+#include "timer.h"
 
 #if defined(__linux__)
 #error "You are not using your cross comp, go do that!"
@@ -14,14 +15,18 @@
 
 void kernel_main(void){
   initGDT();
+  initIDT();
   terminal_init();
   serial_init(SERIAL_COM1_START);
+  init_timer();
+  
+  //asm volatile ("int $0");
 
   putstr("=================================================================\n");
   putstr("=Welcome to the Toast Operating System| est. 2026 Tomer Wiesel |=\n");
   putstr("=================================================================\n");
 
-  initIDT();
+  asm volatile("sti"); while(1);
 } 
 
 

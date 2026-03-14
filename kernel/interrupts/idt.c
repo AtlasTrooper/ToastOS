@@ -2,7 +2,7 @@
 #include "../io.h"
 #include "../serial.h"
 #include "../vga.h"
-
+#include "../stdlib/stdio.h"
 IDT idt;
 idt_entry idt_ent[256];
 system_state *system;
@@ -82,7 +82,6 @@ void isr_handler(system_state *sys){
 }
 
 void irq_handler(system_state *sys){
-    debug_print("\nChoo choo\n");
     void (*handler)(system_state *sys);
 
     handler = irq_map[sys->interr_num-32];
@@ -92,6 +91,7 @@ void irq_handler(system_state *sys){
         outb(PIC2_COMMAND, EOI);
     }
     outb(PIC1_COMMAND, EOI);
+    
 }
 
 void irq_assign_handler(int irq, void (*handler)(system_state *sys)){

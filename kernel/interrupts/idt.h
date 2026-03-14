@@ -1,3 +1,4 @@
+#pragma once
 #include "../qol.h"
 
 #define GDT_CS 0x08
