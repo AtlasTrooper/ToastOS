@@ -19,12 +19,16 @@ void kernel_main(void){
   terminal_init();
   serial_init(SERIAL_COM1_START);
   init_timer();
+  //speaker_config(600);
   
   //asm volatile ("int $0");
 
   putstr("=================================================================\n");
   putstr("=Welcome to the Toast Operating System| est. 2026 Tomer Wiesel |=\n");
   putstr("=================================================================\n");
+
+  
+  play_sandstorm();
 
   asm volatile("sti"); while(1);
 } 

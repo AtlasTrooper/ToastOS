@@ -13,7 +13,7 @@ CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
           -Ikernel/include -MMD -MP
 LDFLAGS = -T linker.ld -nostdlib
 
-QEMU_FLAGS = -serial stdio
+QEMU_FLAGS = -serial stdio -audiodev pa,id=speaker -machine pcspk-audiodev=speaker
 
 # ========================
 # Directories
