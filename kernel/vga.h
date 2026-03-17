@@ -1,3 +1,4 @@
+#pragma once
 #include "qol.h"
 enum vga_color {
 
@@ -32,6 +33,7 @@ void terminal_write(const char * data, size_t size);
 void putstr(const char * data);
 void terminal_scroll();
 void fb_move_cursor(unsigned short pos);
+void terminal_clear();
 
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg){
 

@@ -3,6 +3,7 @@
 #define NOTE_D5  587
 #define NOTE_E5  659
 #define NOTE_A4  440
+
 void timer_handler(system_state *sys);
 
 void timer_wait_t(int ticks);

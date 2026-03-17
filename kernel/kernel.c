@@ -4,6 +4,7 @@
 #include "gdt/gdt.h"
 #include "interrupts/idt.h"
 #include "timer.h"
+#include "kb.h"
 
 #if defined(__linux__)
 #error "You are not using your cross comp, go do that!"
@@ -19,6 +20,7 @@ void kernel_main(void){
   terminal_init();
   serial_init(SERIAL_COM1_START);
   init_timer();
+  kb_init();
   //speaker_config(600);
   
   //asm volatile ("int $0");
@@ -26,9 +28,6 @@ void kernel_main(void){
   putstr("=================================================================\n");
   putstr("=Welcome to the Toast Operating System| est. 2026 Tomer Wiesel |=\n");
   putstr("=================================================================\n");
-
-  
-  play_sandstorm();
 
   asm volatile("sti"); while(1);
 } 

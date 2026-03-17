@@ -37,7 +37,6 @@ void init_timer(){
 void speaker_config(uint32_t freq){
     uint32_t div;
     div = INIT_FREQ / freq;
-
     outb(0x43, 0xb6);
     outb(0x42, div & 0xFF);
     outb(0x42, div >> 8);
@@ -65,48 +64,40 @@ void disable_speaker(){
     outb(0x61, off);
 }
 
-void play_note(uint32_t freq, uint32_t ticks) {
+
+void play_note(uint32_t freq, uint32_t dur) {
+    int gap = 10;        // 10ms gap for crisp staccato
     if (freq == 0) {
-        disable_speaker();
-        timer_wait_t(ticks);
+        timer_wait_t(dur);
     } else {
         speaker_config(freq);
         enable_speaker();
-        
-        // Use 80% of the time for the sound, 20% for the silence gap
-        // This ensures the notes don't "blur" together as you slow down
-        uint32_t sound_duration = (ticks * 8) / 10;
-        uint32_t gap_duration = ticks - sound_duration;
-
-        timer_wait_t(sound_duration);
+        timer_wait_t(dur - gap); // Play for 80ms
         disable_speaker();
-        timer_wait_t(gap_duration);
+        timer_wait_t(gap);       // Silent for 10ms
     }
 }
 
 void play_sandstorm() {
-    // Increase 'tempo_ticks' to slow it down.
-    // 9 = original speed (~167 BPM)
-    // 12 = moderately slow
-    // 15 = very chilled out
-    int tempo_ticks = 13; 
+    timer_config(1000); // accelerate timer for 1ms intervals
+
+    int note_len = 90;
     int i;
 
-    // Part 1: The Build
-    for(i = 0; i < 5; i++) play_note(NOTE_B4, tempo_ticks);
-    timer_wait_t(tempo_ticks); // Half-note rest
+    for(i = 0; i < 5; i++) play_note(NOTE_B4, note_len);
+    timer_wait_t(note_len); 
     
-    for(i = 0; i < 7; i++) play_note(NOTE_B4, tempo_ticks);
-    timer_wait_t(tempo_ticks);
+    for(i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
+    timer_wait_t(note_len);
 
-    // Part 2: The Pitch Shifts
-    play_note(NOTE_D5, tempo_ticks);
-    for(i = 0; i < 7; i++) play_note(NOTE_B4, tempo_ticks);
+    play_note(NOTE_D5, note_len);
+    for(i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
     
-    play_note(NOTE_E5, tempo_ticks);
-    for(i = 0; i < 6; i++) play_note(NOTE_E5, tempo_ticks);
+    for(i = 0; i < 7; i++) play_note(NOTE_E5, note_len);
     
-    play_note(NOTE_A4, tempo_ticks);
-    for(i = 0; i < 7; i++) play_note(NOTE_B4, tempo_ticks);
+    play_note(NOTE_A4, note_len);
+    for(i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
+
+    timer_config(100); //return timer to standard speeds
 }
 
