@@ -25,8 +25,6 @@ size_t terminal_row;
 size_t terminal_col;
 uint8_t terminal_color;
 uint16_t* terminal_buff = (uint16_t*)VGA_MEM;
-uint8_t cursor_pos = 0;
-
 void terminal_init(void){
   
   terminal_row = 0;
@@ -47,7 +45,7 @@ void terminal_set_color(uint8_t color){
 
 void terminal_putEntryAt(char c, uint8_t color, size_t x, size_t y)
 {
-  const size_t index = y * VGA_W + x;
+  size_t index = y * VGA_W + x;
   terminal_buff[index] = vga_entry(c,color);
   fb_move_cursor(index);
   
@@ -56,7 +54,9 @@ void terminal_putEntryAt(char c, uint8_t color, size_t x, size_t y)
 void newLine(){
   if(terminal_row < VGA_H -1){
     terminal_row +=1;
-    terminal_col = 0; 
+    terminal_col = 0;
+    size_t cursor_pos = terminal_row * VGA_W + terminal_col;
+    fb_move_cursor(cursor_pos); 
   }
   else{
     terminal_scroll();
@@ -137,4 +137,5 @@ void fb_move_cursor(unsigned short pos){
   outb(FB_DATA_PORT, ((pos >> 8) & 0x00FF));
   outb(FB_COMMAND_PORT, FB_LO_COM);
   outb(FB_DATA_PORT, pos & 0x00FF);
+  
 }

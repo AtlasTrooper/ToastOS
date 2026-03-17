@@ -14,7 +14,7 @@
 
 #define CAPS_LOCK 0x3A
 
-typedef struct {
+typedef struct PACKED {
     char name[16];
     uint8_t lower[128];
     uint8_t upper[128];

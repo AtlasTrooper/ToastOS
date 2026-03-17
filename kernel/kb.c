@@ -22,23 +22,15 @@ void kb_handler(system_state *sys){
     }
     else if(scancode == CAPS_LOCK){
             caps_on = !caps_on;
-            printf(" |CAPS %s|\n", caps_on == 1? "ON" : "OFF");
-            switch(caps_on){
-                case 0:
-                        //disable lights
-                    break;
-                case 1:
-                        //enable lights
-                    break;
-            }
-            
+            printf(" [CAPS %s]\n", caps_on == 1? "ON" : "OFF");
     }
     else if((scancode & 0x80) && (scancode == REL_SHIFT_L || scancode == REL_SHIFT_R)){
             shift = 0;
             //printf(" |SHIFT %s|\n", shift == 1? "ON" : "OFF");
     }
-    else{
+    else if (!(scancode &0x80)){
         (shift ^ caps_on) ? printf("%c", def_layout.upper[scancode]) : printf("%c", def_layout.lower[scancode]);
+        //(shift ^ caps_on) ? putchar(def_layout.upper[scancode]) : putchar(def_layout.lower[scancode]);
     }
 }
 
@@ -46,5 +38,6 @@ void kb_init(){
     caps_on = 0;
     shift = 0;
     irq_assign_handler(1, kb_handler);
+    printf("\nKEYBOARD INITIALIZED, CURRENT LAYOUT: %s \n", def_layout.name);
 }
 
