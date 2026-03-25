@@ -26,4 +26,9 @@ The little OS book: https://littleosbook.github.io
 
 printf implementation by Scott Cosentino: https://gitlab.com/olivestem/Jazz2-0/-/blob/main/src/stdlib/stdio.c?ref_type=heads
 
+Multiboot documentation:
+https://www.gnu.org/software/grub/manual/multiboot/html_node/multiboot_002eh.html#multiboot_002eh
+
+
+
 

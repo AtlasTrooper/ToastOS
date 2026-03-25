@@ -1,6 +1,6 @@
 
 .set ALIGN, 1 <<0 
-.set MEMINFO, 1<<1 
+.set MEMINFO, 0x00000003//Mem + vid info 
 .set FLAGS, ALIGN | MEMINFO 
 .set MAGIC, 0x1BADB002 
 .set CHECKSUM, -(MAGIC + FLAGS) 
@@ -23,9 +23,9 @@ stack_top:
 .type _start, @function
 _start:
   mov $stack_top, %esp
-
-
-/*Future updates, add GDT and paging here*/
+  push %ebx
+  push %eax
+/*Future updates, add GDT,IDT[done] and paging[w.i.p] here*/
 
   call kernel_main
 
@@ -35,7 +35,7 @@ _start:
 
 
 /*Set the size of the _start symbol to the current location '.' minus it's start.
- Apparently this is useful when debugging or when implementint call tracing*/
+ Apparently this is useful when debugging or when implementing call tracing*/
 
 .size _start, . - _start
 

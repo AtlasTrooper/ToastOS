@@ -5,6 +5,8 @@
 #include "interrupts/idt.h"
 #include "timer.h"
 #include "kb.h"
+#include "memoryMan/multiboot.h"
+#include "memoryMan/memory.h"
 
 #if defined(__linux__)
 #error "You are not using your cross comp, go do that!"
@@ -14,12 +16,13 @@
 #error "This os needs to be compiled with an ix86-elf comp"
 #endif
 
-void kernel_main(void){
+void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   initGDT();
   initIDT();
   terminal_init();
   serial_init(SERIAL_COM1_START);
   init_timer();
+  
   //speaker_config(600);
   //asm volatile ("int $0");
 
@@ -28,6 +31,8 @@ void kernel_main(void){
   putstr("=================================================================\n");
   
   kb_init();
+
+  initMem(boot_data);
 
   asm volatile("sti"); while(1);
 } 
