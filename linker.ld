@@ -1,42 +1,36 @@
-/*The bootloader will look at this image and start execution at the symbol designated as the entry point*/
-
 ENTRY(_start)
-
-/*The following section tells where the various sections of the obj files will be put into the final kernel img*/
 
 SECTIONS
 {
 
-  /*we use the recommended 2MB offset since UEFI is cool like that(we don't get no fancy multiboot2 features so)*/
+  . = 1M; /*Boot sections*/
 
-  . = 2M;
-
-  /*ELF sections lets goo*/
-
-  .text BLOCK(4K) : ALIGN(4K)
-  {
+  .multiboot BLOCK(4K): AT(ADDR(.multiboot)){
     *(.multiboot)
+  }
+
+  .boot BLOCK(4K): AT(ADDR(.boot)){
+    *(.boot)
+  }
+
+  . = 0xC0100000; /*Higher half*/
+
+  .text BLOCK(4K): AT(ADDR(.text) - 0xC0000000){
     *(.text)
   }
 
-  .rodata BLOCK(4K) : ALIGN(4K)
-  {
+  .rodata BLOCK(4K): AT(ADDR(.rodata) - 0xC0000000){
     *(.rodata)
   }
 
-  .data BLOCK(4K): ALIGN(4K)
-  {
+  .data BLOCK(4K): AT(ADDR(.data) - 0xC0000000){
     *(.data)
   }
 
-  .bss BLOCK(4K) : ALIGN(4K)
-  {
+  .bss BLOCK(4K): AT(ADDR(.bss) - 0xC0000000){
     *(COMMON)
     *(.bss)
   }
-    
-  /*might add more stuff here later but for now dis good*/
 
-
-
+  _kernel_end = .;
 }

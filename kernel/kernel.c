@@ -27,12 +27,12 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   //asm volatile ("int $0");
 
   putstr("=================================================================\n");
-  putstr("=Welcome to the Toast Operating System| est. 2026 Tomer Wiesel |=\n");
+  putstr("=Welcome to the Toast Operating System| est. 2026 Tomer Wiesel (eden was here :)|=\n");
   putstr("=================================================================\n");
   
   kb_init();
 
-  initMem(boot_data);
+  //initMem(boot_data);
 
   asm volatile("sti"); while(1);
 } 

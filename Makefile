@@ -11,7 +11,7 @@ QEMU    = qemu-system-i386
 # ========================
 CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
           -Ikernel/include -MMD -MP
-LDFLAGS = -T linker.ld -nostdlib
+LDFLAGS = -T linker.ld -nostdlib --build-id=none
 
 QEMU_FLAGS = -serial stdio -audiodev pa,id=speaker -machine pcspk-audiodev=speaker
 
