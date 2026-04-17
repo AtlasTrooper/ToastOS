@@ -5,15 +5,17 @@ SECTIONS
 
   . = 1M; /*Boot sections*/
 
-  .multiboot BLOCK(4K): AT(ADDR(.multiboot)){
-    *(.multiboot)
+  .multiboot : AT(ADDR(.multiboot)){
+    KEEP(*(.multiboot))
   }
 
-  .boot BLOCK(4K): AT(ADDR(.boot)){
+  .boot : AT(ADDR(.boot)){
     *(.boot)
   }
 
-  . = 0xC0100000; /*Higher half*/
+  . = ALIGN(4K);
+
+  . = . + 0xC0000000;
 
   .text BLOCK(4K): AT(ADDR(.text) - 0xC0000000){
     *(.text)
@@ -21,6 +23,8 @@ SECTIONS
 
   .rodata BLOCK(4K): AT(ADDR(.rodata) - 0xC0000000){
     *(.rodata)
+    *(.rodata.*)
+    *(.rodata1) 
   }
 
   .data BLOCK(4K): AT(ADDR(.data) - 0xC0000000){
@@ -30,6 +34,13 @@ SECTIONS
   .bss BLOCK(4K): AT(ADDR(.bss) - 0xC0000000){
     *(COMMON)
     *(.bss)
+  }
+
+  /DISCARD/ :
+  {
+    *(.comment)
+    *(.eh_frame)
+    *(.note.*)
   }
 
   _kernel_end = .;
