@@ -4,18 +4,11 @@
 .set MAGIC, 0x1BADB002 
 .set CHECKSUM, -(MAGIC + FLAGS) 
 
-.section .multiboot
+.section .multiboot, "a", @progbits
 .align 4
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
-
-.long 0, 0, 0, 0, 0
-
-.long 0
-.long 800
-.long 600
-.long 32
 
 .section .bss
 .align 16
