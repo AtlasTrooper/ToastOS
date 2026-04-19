@@ -18,7 +18,7 @@ QEMU_FLAGS = -serial stdio -audiodev pa,id=speaker -machine pcspk-audiodev=speak
 
 BOCHSRC	= bochsrc.txt
 
-BOCHS_FLAGS = -q -f $(BOCHSRC)
+BOCHS_FLAGS = -q -f $(BOCHSRC) -debugger
 
 # ========================
 # Directories

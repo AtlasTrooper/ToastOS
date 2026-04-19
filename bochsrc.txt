@@ -8,7 +8,7 @@ vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest.bin
 
 # --- Boot Config ---
 boot: cdrom
-ata0-master: type=cdrom, path=build/toast.iso, status=inserted
+ata0-slave: type=cdrom, path=build/toast.iso, status=inserted
 
 # --- Logging and GUI ---
 log: bochsout.txt
