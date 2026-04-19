@@ -21,34 +21,20 @@ stack_top:
 .global _start
 .type _start, @function
 _start:
-  movw $0x0F31, (0xB8000) # White '1' on Black
+  //movw $0x0F31, (0xB8000)
   mov $(init_page_dir - 0xC0000000), %ecx 
   mov %ecx, %cr3
   
   mov %cr4, %ecx
-  or 0x00000010, %ecx
+  or $0x00000010, %ecx
   mov %ecx, %cr4
 
   mov %cr0, %ecx
-  or 0x80000000, %ecx
+  or $0x80000000, %ecx
   mov %ecx, %cr0
+  //movw $0x0F32, (0xB8002)
   lea higher_half, %ecx
   jmp *%ecx
-
-.section .data
-.align 4096
-.global init_page_dir
-init_page_dir:
-  //PDE config [PS=1|D|A|PCD|PWT|U/S|R/W=1|P=1] -> 0x83
-  .long 0x00000083
-  .fill 767, 4, 0
-
-  .long (0 << 22) | 0x83
-  .long (1 << 22) | 0x83
-  .long (2 << 22) | 0x83
-  .long (3 << 22) | 0x83
-
-  .fill 252, 4, 0
 
 .section .text
 .global higher_half
@@ -64,6 +50,21 @@ higher_half:
 halt:
   hlt
   jmp halt
+
+.section .data
+.align 4096
+.global init_page_dir
+init_page_dir:
+  //PDE config [PS=1|D|A|PCD|PWT|U/S|R/W=1|P=1] -> 0x83
+  .long 0x00000083
+  .fill 767, 4, 0
+
+  .long (0 << 22) | 0x83
+  .long (1 << 22) | 0x83
+  .long (2 << 22) | 0x83
+  .long (3 << 22) | 0x83
+
+  .fill 252, 4, 0
 
 
 
