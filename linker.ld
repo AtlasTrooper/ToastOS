@@ -17,6 +17,9 @@ SECTIONS
 
   . = . + 0xC0000000;
 
+  _kernel_v_start = .;
+  _kernel_p_start = . - 0xC0000000;
+
   .text BLOCK(4K): AT(ADDR(.text) - 0xC0000000){
     *(.text)
   }
@@ -43,5 +46,6 @@ SECTIONS
     *(.note.*)
   }
 
-  _kernel_end = .;
+  _kernel_v_end = .;
+  _kernel_p_end = . - 0xC0000000;
 }

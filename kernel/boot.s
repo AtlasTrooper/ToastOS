@@ -16,24 +16,24 @@ stack_bottom:
 .skip 16384
 stack_top:
 
-.section .boot
+.section .boot, "a", @progbits
 
 .global _start
 .type _start, @function
 _start:
-  mov $(init_page_dir - 0xC0000000), %eax 
-  mov %eax, %cr3
+  movw $0x0F31, (0xB8000) # White '1' on Black
+  mov $(init_page_dir - 0xC0000000), %ecx 
+  mov %ecx, %cr3
   
   mov %cr4, %ecx
-  or %ecx, 0x00000010
+  or 0x00000010, %ecx
   mov %ecx, %cr4
 
   mov %cr0, %ecx
-  or %ecx, 0x80000000
+  or 0x80000000, %ecx
   mov %ecx, %cr0
-  
-  lea higher_half, %eax
-  jmp *%eax
+  lea higher_half, %ecx
+  jmp *%ecx
 
 .section .data
 .align 4096
@@ -52,8 +52,10 @@ init_page_dir:
 
 .section .text
 .global higher_half
+.type higher_half, @function
 higher_half:
     mov $stack_top, %esp
+    push %eax
     push %ebx
     xor %ebp, %ebp
     call kernel_main

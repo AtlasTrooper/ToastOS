@@ -5,6 +5,7 @@ CC      = i686-elf-gcc
 AS      = i686-elf-as
 LD      = i686-elf-ld
 QEMU    = qemu-system-i386
+BOCHS	= bochs
 
 # ========================
 # Flags
@@ -14,6 +15,10 @@ CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
 LDFLAGS = -T linker.ld -nostdlib --build-id=none
 
 QEMU_FLAGS = -serial stdio -audiodev pa,id=speaker -machine pcspk-audiodev=speaker
+
+BOCHSRC	= bochsrc.txt
+
+BOCHS_FLAGS = -q -f $(BOCHSRC)
 
 # ========================
 # Directories
@@ -86,6 +91,12 @@ $(ISO): $(KERNEL_BIN)
 # ========================
 run: $(ISO)
 	$(QEMU) -cdrom $< $(QEMU_FLAGS)
+
+bochs-debug: $(ISO)
+	$(BOCHS) $(BOCHS_FLAGS)
+
+qemu-debug: $(ISO)
+	$(QEMU) -cdrom $< $(QEMU_FLAGS) -d int -no-reboot -no-shutdown
 
 # ========================
 # Clean
