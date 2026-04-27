@@ -41,9 +41,9 @@ _start:
 .type higher_half, @function
 higher_half:
     mov $stack_top, %esp
+    push %ebx //contains the multiboot header
     push %eax
-    push %ebx
-    xor %ebp, %ebp
+    xor %ebp, %ebp //no stack frame before the higher half
     call kernel_main
     cli
 
@@ -56,7 +56,8 @@ halt:
 .global init_page_dir
 init_page_dir:
   //PDE config [PS=1|D|A|PCD|PWT|U/S|R/W=1|P=1] -> 0x83
-  .long 0x00000083
+  
+  .long 0x83
   .fill 767, 4, 0
 
   .long (0 << 22) | 0x83

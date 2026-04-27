@@ -4,5 +4,4 @@
 #include <stdint.h>
 
 #define PACKED __attribute__((packed))
-
-void *memset(void *dest, int val, unsigned int iter);
+//void *memset(void *dest, int val, unsigned int iter);

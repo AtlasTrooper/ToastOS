@@ -46,6 +46,7 @@ SECTIONS
     *(.note.*)
   }
 
+  
   _kernel_v_end = .;
   _kernel_p_end = . - 0xC0000000;
 }

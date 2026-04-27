@@ -1,6 +1,6 @@
 #pragma once
 #include "../qol.h"
-
+#include "../memoryMan/memory.h"
 #define GDT_CS 0x08
 #define INT_GATE_FLAGS 0x8E
 
