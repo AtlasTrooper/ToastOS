@@ -2,7 +2,7 @@
 #include "../qol.h"
 #include "multiboot.h"
 #include "../stdlib/stdio.h"
-
+#include "../serial.h"
 #define PAGE_SIZE 4096
 #define KERNEL_START 0xC0000000
 #define CEIL(data, cap) ((data + (cap-1)) & ~(cap-1))

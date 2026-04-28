@@ -19,6 +19,7 @@ size_t strlen(const char * str){
 
 #define VGA_W 80
 #define VGA_H 25
+//TODO: don't forget to push this to it's new v_addr to account for the higher half and remapped page tables
 #define VGA_MEM 0xB8000
 
 size_t terminal_row;

@@ -34,8 +34,8 @@ void multiboot_mmap(multiboot_info* boot_data){
 }
 */
 
-uint32_t* b_map;
-uint32_t max_frames;
+//uint32_t* b_map;
+//uint32_t max_frames;
 
 void *memset(void *dest, int val, unsigned int iter){
     unsigned char* ptr =dest;
@@ -79,6 +79,21 @@ void initMem(multiboot_info* boot_data){
     printf("First available physical frame: %p \n\n", p_alloc_s);
 
     printf("Reconfiguring page tables... setting up 4KB pages\n");
+
+    for(uint32_t i = (uint32_t)p_addr_s; i < (uint32_t)p_bitmap_e; i+=PAGE_SIZE){
+        map_page(i+KERNEL_START, i, 0x3);
+    }
+
+    uint32_t p_pd_addr = (uint32_t)&(page_directory)-KERNEL_START;
+
+    asm volatile(
+        "mov %0, %%cr3\n"
+        :
+        :"r"(p_pd_addr)
+        :"memory"
+    ); //reload CR3
+
+    debug_print("[INVALIDATED TLB]\n");
     
     
 }
@@ -88,6 +103,10 @@ uint32_t alloc_frame(){
         if(b_map[i] != 0xFFFFFFFF){
             uint32_t pos = i*32;
             for(int j = 0; j< 32; j++){
+                if (pos+j > max_frames){
+                    return 0;
+                }
+
                 if(!BITMAP_TEST(pos + j)){
                     BITMAP_SET(pos + j);
                     return (uint32_t)((pos+j)*PAGE_SIZE);
@@ -102,22 +121,32 @@ void free_frame(uint32_t p_addr){
     BITMAP_CLEAR((uint32_t)(p_addr/PAGE_SIZE));
 }
 
-void invalidate_page(uint32_t addr){
+void invalidate_page(uintptr_t addr){
     asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
 }
 
 void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags){
-
     /*
     to do:
-    1. 
-    2.
-    3.
+    1. check if PT is occupied here
+    2. get PT v_addr
+    3. map physical frame and flags into table
     4. flush tlb
-    
     */
+    
+    uint32_t pd_index = v_addr >> 22;
+    uint32_t pt_index = ((v_addr >> 12) & 0x03FF);
 
-    invalidate_page
+    if(!(page_directory[pd_index] & 0x1)){
+        uint32_t new_pt_p_addr = alloc_frame();
+        memset((void*)(new_pt_p_addr + KERNEL_START), 0, 4096);
+        page_directory[pd_index] = new_pt_p_addr | pdt_flags;
+        
+    }
 
+    uint32_t *pt = (uint32_t *)((page_directory[pd_index] & ~0xFFF)+KERNEL_START);
+    pt[pt_index] = p_addr | pdt_flags;
+    invalidate_page(v_addr);
+    debug_print("Mapped page\n");
 }
 
