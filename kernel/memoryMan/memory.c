@@ -69,16 +69,55 @@ void initMem(multiboot_info* boot_data){
     printf(" Initializing memory map...\n\n Virtual start: %p |\n Virtual end: %p |\n Physical start: %p |\n Physical end: %p |\n\n",
          v_addr_s, v_addr_e, p_addr_s, p_addr_e);
 
-    //phys addr = frame * 4096
+    
     for(uint32_t i = 0; i < used_frames; i++){
         BITMAP_SET(i);
     }
 
     printf("[PAGE FRAME ALLOCATION INITIALIZED]: Tracking %d frames. \n", max_frames);
-    printf("First available physical frame: %p \n", p_alloc_s);
+    printf("Bitmap positioned at: %p\n", b_map);
+    printf("First available physical frame: %p \n\n", p_alloc_s);
 
+    printf("Reconfiguring page tables... setting up 4KB pages\n");
+    
     
 }
 
-void * assign_page_frame();
-void dealloc_page_frame();
+uint32_t alloc_frame(){
+    for(uint32_t i = 0 ; i<(max_frames/32); i++){
+        if(b_map[i] != 0xFFFFFFFF){
+            uint32_t pos = i*32;
+            for(int j = 0; j< 32; j++){
+                if(!BITMAP_TEST(pos + j)){
+                    BITMAP_SET(pos + j);
+                    return (uint32_t)((pos+j)*PAGE_SIZE);
+                }
+            }
+        }
+    }
+    return 0; //we out
+}
+
+void free_frame(uint32_t p_addr){
+    BITMAP_CLEAR((uint32_t)(p_addr/PAGE_SIZE));
+}
+
+void invalidate_page(uint32_t addr){
+    asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
+}
+
+void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags){
+
+    /*
+    to do:
+    1. 
+    2.
+    3.
+    4. flush tlb
+    
+    */
+
+    invalidate_page
+
+}
+

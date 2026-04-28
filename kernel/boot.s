@@ -22,7 +22,7 @@ stack_top:
 .type _start, @function
 _start:
   //movw $0x0F31, (0xB8000)
-  mov $(init_page_dir - 0xC0000000), %ecx 
+  mov $(page_directory - 0xC0000000), %ecx 
   mov %ecx, %cr3
   
   mov %cr4, %ecx
@@ -53,8 +53,8 @@ halt:
 
 .section .data
 .align 4096
-.global init_page_dir
-init_page_dir:
+.global page_directory
+page_directory:
   //PDE config [PS=1|D|A|PCD|PWT|U/S|R/W=1|P=1] -> 0x83
   
   .long 0x83
