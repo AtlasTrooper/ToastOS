@@ -80,21 +80,19 @@ void initMem(multiboot_info* boot_data){
 
     printf("Reconfiguring page tables... setting up 4KB pages\n");
 
+    page_directory[0] = 0;
+    invalidate_page(0);
+    page_directory[1023] = ((uint32_t) page_directory - KERNEL_START) | 0x3;
+    invalidate_page(0xFFFFF000);
+
+
     for(uint32_t i = (uint32_t)p_addr_s; i < (uint32_t)p_bitmap_e; i+=PAGE_SIZE){
         map_page(i+KERNEL_START, i, 0x3);
     }
 
     uint32_t p_pd_addr = (uint32_t)&(page_directory)-KERNEL_START;
 
-    asm volatile(
-        "mov %0, %%cr3\n"
-        :
-        :"r"(p_pd_addr)
-        :"memory"
-    ); //reload CR3
-
-    debug_print("[INVALIDATED TLB]\n");
-    
+    reload_CR3(p_pd_addr);
     
 }
 
@@ -121,7 +119,7 @@ void free_frame(uint32_t p_addr){
     BITMAP_CLEAR((uint32_t)(p_addr/PAGE_SIZE));
 }
 
-void invalidate_page(uintptr_t addr){
+void invalidate_page(uint32_t addr){
     asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
 }
 
@@ -137,16 +135,30 @@ void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags){
     uint32_t pd_index = v_addr >> 22;
     uint32_t pt_index = ((v_addr >> 12) & 0x03FF);
 
-    if(!(page_directory[pd_index] & 0x1)){
+    uint32_t* pt_v_addr = (uint32_t*)(0xFFC00000) + (0x400 * pd_index);
+    uint32_t* pd_v_addr = (uint32_t*)(0xFFFFF000);
+
+    if(!(pd_v_addr[pd_index] & 0x1)){
         uint32_t new_pt_p_addr = alloc_frame();
-        memset((void*)(new_pt_p_addr + KERNEL_START), 0, 4096);
-        page_directory[pd_index] = new_pt_p_addr | pdt_flags;
-        
+        printf("NEW PT AT %p \n", new_pt_p_addr);
+        pd_v_addr[pd_index] = new_pt_p_addr | pdt_flags;
+
+        invalidate_page(*pt_v_addr);
+
+        memset(pt_v_addr, 0, 4096);
     }
 
-    uint32_t *pt = (uint32_t *)((page_directory[pd_index] & ~0xFFF)+KERNEL_START);
-    pt[pt_index] = p_addr | pdt_flags;
-    invalidate_page(v_addr);
+    //uint32_t *pt = (uint32_t *)((page_directory[pd_index] & ~0xFFF)+KERNEL_START);
+    pt_v_addr[pt_index] = p_addr | pdt_flags;
+    
     debug_print("Mapped page\n");
 }
 
+void reload_CR3(uint32_t p_pd_addr){
+    asm volatile(
+        "mov %0, %%cr3\n"
+        :
+        :"r"(p_pd_addr)
+        :"memory"
+    ); //reload CR3
+}

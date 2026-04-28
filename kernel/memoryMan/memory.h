@@ -26,3 +26,4 @@ void free_frame(uint32_t p_addr);
 void initMem(multiboot_info* boot_data);
 void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags);
 void invalidate_page(uint32_t addr);
+void reload_CR3(uint32_t p_pd_addr);
