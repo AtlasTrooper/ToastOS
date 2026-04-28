@@ -1,7 +1,7 @@
 # --- Hardware Config ---
 megs: 32
 cpu: count=1, ips=15000000, model=core2_penryn_t9600, reset_on_triple_fault=0
-
+vga: extension=vbe, update_freq=60
 # --- ROM Images (Fixed for Arch) ---
 romimage: file=/usr/share/bochs/BIOS-bochs-latest
 vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest.bin
