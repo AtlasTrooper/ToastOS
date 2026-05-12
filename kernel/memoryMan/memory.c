@@ -80,11 +80,12 @@ void initMem(multiboot_info* boot_data){
 
     printf("Reconfiguring page tables... setting up 4KB pages\n");
 
-    page_directory[0] = 0;
-    invalidate_page(0);
+    
     page_directory[1023] = ((uint32_t) page_directory - KERNEL_START) | 0x3;
+    //printf("%d LAST STOP\n", page_directory[1023]);
     invalidate_page(0xFFFFF000);
 
+    printf("[Starting mapping sequence!]\n");
 
     for(uint32_t i = (uint32_t)p_addr_s; i < (uint32_t)p_bitmap_e; i+=PAGE_SIZE){
         map_page(i+KERNEL_START, i, 0x3);
@@ -93,6 +94,8 @@ void initMem(multiboot_info* boot_data){
     uint32_t p_pd_addr = (uint32_t)&(page_directory)-KERNEL_START;
 
     reload_CR3(p_pd_addr);
+
+    printf("[Mapping sequence complete!]\n");
     
 }
 
