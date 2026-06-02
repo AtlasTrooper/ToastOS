@@ -1,14 +1,17 @@
 # ToastOS
 
-> A hobby operating system built from scratch, developed incrementally from a bare-metal kernel toward a fully featured OS.
+> My hobby operating system built from scratch, with the goal of starting from a bare-metal kernel and progressing toward a fully featured OS.
 
 ---
 
 ## Overview
 
-ToastOS is an x86 operating system built from the ground up. The goal is to progress through increasingly complex OS subsystems — starting from a minimal kernel capable of printing text, and working toward memory management, filesystems, networking, and eventually a graphical interface.
+So here's the sitch', I love low level programming, and have been wanting to learn about operating system concepts and how they work for a very long time now. Through this project, I will teach myself
+these very things.
 
-Development follows five core stages, each building on the last.
+ToastOS is an x86 operating system I am building from the ground up. The goal is to start from a minimal kernel capable of printing text, and working toward memory management, filesystems, networking, and eventually a graphical interface.
+
+My (current) development plan follows five core stages, each building on the last.
 
 ---
 
@@ -42,22 +45,24 @@ Completed components:
 
 ### Stage 2 — Memory Allocation & File System 🔄
 
-**Goal:** Implement dynamic memory management and a basic filesystem.
+**Goal:** Implement dynamic memory management and support for a few basic filesystems (ext2, FAT32).
 
 #### ✅ Page Frame Allocator (Complete)
 
-A physical memory manager has been implemented using a **bitmap-based page frame allocator**. Key details:
+Just recently, I've finished implementing a **bitmap-based page frame allocator**. Key details:
 
 - The allocator reads the memory map provided by the Multiboot bootloader to determine available physical memory.
 - A bitmap tracks the allocation state of each 4KB page frame (1 bit per frame).
 - The bitmap itself is placed directly after the kernel in memory, followed by the initial page allocation stack.
 - Page tables are reconfigured after initialization to correctly map the kernel and bitmap regions.
 
-The screenshot below shows the allocator running successfully under the Bochs debugger, with the virtual/physical address layout, bitmap position, and first available frame all confirmed:
+The screenshot below shows the allocator running successfully, using the Bochs debugger to display the updated page table configuration.
 
-![ToastOS page frame allocator running in Bochs debugger](bochs_debug_screenshot.png)
+![ToastOS page frame allocator running in Bochs debugger](docs/screenshots/bochs_debug_screenshot.png)
 
 *Bochs debugger view: register state (left), assembly disassembly (center), and kernel output confirming successful memory map initialization (right). The kernel reports 8,176 tracked frames with the bitmap positioned at `0x010b960` and the first available physical frame at `0x10c000`.*
+
+PS: I know that bitmaps aren't exactly efficient, but I wanted to understand how page frame allocation and recursive mapping work without throwing myself at something super complicated first. The goal was to learn how it's supposed to work and implement it. Maybe in the future, I shall implement a different algorithm such as the buddy system.
 
 #### ⏳ Next Up: `kmalloc`
 
