@@ -24,7 +24,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7fbd025dd010. after alignment, vector=0x7fbd025de000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7f71d59dd010. after alignment, vector=0x7f71d59de000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -36,7 +36,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Tue Jun  2 12:43:13   2026 tz=utc (time0=1780404193)
+00000000000i[CMOS  ] Setting initial clock to: Tue Jun  2 16:03:34   2026 tz=utc (time0=1780416214)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -188,48 +188,48 @@
 00000000000i[PLUGIN] reset of 'iodebug' plugin device by virtual method
 00000000000i[PLUGIN] reset of 'usb_uhci' plugin device by virtual method
 00000001740i[BIOS  ] BIOS BUILD DATE: 02/16/25
-00000333062i[KBD   ] reset-disable command received
-00000338314i[BIOS  ] Starting rombios32
-00000338752i[BIOS  ] Shutdown flag 0
-00000339350i[BIOS  ] ram_size=0x02000000
-00000339782i[BIOS  ] ram_end=32MB
-00000489373i[BIOS  ] Found 1 cpu(s)
-00000503331i[BIOS  ] bios_table_addr: 0x000fa168 end=0x000fcc00
-00000831147i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
-00001159082i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
-00001159106i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
-00001159130i[P2ISA ] PCI IRQ routing: PIRQC# set to 0x0b
-00001159154i[P2ISA ] PCI IRQ routing: PIRQD# set to 0x09
-00001159164i[P2ISA ] write: ELCR2 = 0x0a
-00001159933i[BIOS  ] PIIX3/PIIX4 init: elcr=00 0a
-00001173609i[BIOS  ] PCI: bus=0 devfn=0x00: vendor_id=0x8086 device_id=0x1237 class=0x0600
-00001175953i[BIOS  ] PCI: bus=0 devfn=0x08: vendor_id=0x8086 device_id=0x7000 class=0x0601
-00001178136i[BIOS  ] PCI: bus=0 devfn=0x09: vendor_id=0x8086 device_id=0x7010 class=0x0101
-00001178371i[PIDE  ] BAR #4: i/o base address = 0xc000
-00001178987i[BIOS  ] region 4: 0x0000c000
-00001181022i[BIOS  ] PCI: bus=0 devfn=0x0a: vendor_id=0x8086 device_id=0x7020 class=0x0c03
-00001181235i[UHCI  ] BAR #4: i/o base address = 0xc020
-00001181851i[BIOS  ] region 4: 0x0000c020
-00001181979i[UHCI  ] new IRQ line = 9
-00001183901i[BIOS  ] PCI: bus=0 devfn=0x0b: vendor_id=0x8086 device_id=0x7113 class=0x0680
-00001184177i[ACPI  ] new IRQ line = 11
-00001184191i[ACPI  ] new IRQ line = 9
-00001184219i[ACPI  ] new PM base address: 0xb000
-00001184233i[ACPI  ] new SM base address: 0xb100
-00001184261i[PCI   ] setting SMRAM control register to 0x4a
-00001348396i[CPU0  ] Enter to System Management Mode
-00001348406i[CPU0  ] RSM: Resuming from System Management Mode
-00001512462i[PCI   ] setting SMRAM control register to 0x0a
-00001539125i[BIOS  ] MP table addr=0x000fa240 MPC table addr=0x000fa170 size=0xc8
-00001540832i[BIOS  ] SMBIOS table addr=0x000fa250
-00001542921i[BIOS  ] ACPI tables: RSDP addr=0x000fa370 ACPI DATA addr=0x01ff0000 size=0xff8
-00001545906i[BIOS  ] Firmware waking vector 0x1ff00cc
-00001548160i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
-00001548890i[BIOS  ] bios_table_cur_addr: 0x000fa394
-00001648843i[VBIOS ] VGABios ID: vgabios.c 2025-01-08
-00001648922i[BXVGA ] VBE known Display Interface b0c0
-00001648962i[BXVGA ] VBE known Display Interface b0c5
-00001650383i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
-00005338148i[BIOS  ] IDE time out
-00051828244i[BIOS  ] Booting from 07c0:0000
-00137988211i[SER   ] com1: FIFO enabled
+00000317300i[KBD   ] reset-disable command received
+00000322590i[BIOS  ] Starting rombios32
+00000323028i[BIOS  ] Shutdown flag 0
+00000323626i[BIOS  ] ram_size=0x02000000
+00000324058i[BIOS  ] ram_end=32MB
+00000473622i[BIOS  ] Found 1 cpu(s)
+00000487580i[BIOS  ] bios_table_addr: 0x000fa168 end=0x000fcc00
+00000815396i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001143331i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
+00001143355i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
+00001143379i[P2ISA ] PCI IRQ routing: PIRQC# set to 0x0b
+00001143403i[P2ISA ] PCI IRQ routing: PIRQD# set to 0x09
+00001143413i[P2ISA ] write: ELCR2 = 0x0a
+00001144182i[BIOS  ] PIIX3/PIIX4 init: elcr=00 0a
+00001157858i[BIOS  ] PCI: bus=0 devfn=0x00: vendor_id=0x8086 device_id=0x1237 class=0x0600
+00001160202i[BIOS  ] PCI: bus=0 devfn=0x08: vendor_id=0x8086 device_id=0x7000 class=0x0601
+00001162385i[BIOS  ] PCI: bus=0 devfn=0x09: vendor_id=0x8086 device_id=0x7010 class=0x0101
+00001162620i[PIDE  ] BAR #4: i/o base address = 0xc000
+00001163236i[BIOS  ] region 4: 0x0000c000
+00001165271i[BIOS  ] PCI: bus=0 devfn=0x0a: vendor_id=0x8086 device_id=0x7020 class=0x0c03
+00001165484i[UHCI  ] BAR #4: i/o base address = 0xc020
+00001166100i[BIOS  ] region 4: 0x0000c020
+00001166228i[UHCI  ] new IRQ line = 9
+00001168150i[BIOS  ] PCI: bus=0 devfn=0x0b: vendor_id=0x8086 device_id=0x7113 class=0x0680
+00001168426i[ACPI  ] new IRQ line = 11
+00001168440i[ACPI  ] new IRQ line = 9
+00001168468i[ACPI  ] new PM base address: 0xb000
+00001168482i[ACPI  ] new SM base address: 0xb100
+00001168510i[PCI   ] setting SMRAM control register to 0x4a
+00001332645i[CPU0  ] Enter to System Management Mode
+00001332655i[CPU0  ] RSM: Resuming from System Management Mode
+00001496711i[PCI   ] setting SMRAM control register to 0x0a
+00001523374i[BIOS  ] MP table addr=0x000fa240 MPC table addr=0x000fa170 size=0xc8
+00001525081i[BIOS  ] SMBIOS table addr=0x000fa250
+00001527170i[BIOS  ] ACPI tables: RSDP addr=0x000fa370 ACPI DATA addr=0x01ff0000 size=0xff8
+00001530155i[BIOS  ] Firmware waking vector 0x1ff00cc
+00001532409i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001533139i[BIOS  ] bios_table_cur_addr: 0x000fa394
+00001633092i[VBIOS ] VGABios ID: vgabios.c 2025-01-08
+00001633171i[BXVGA ] VBE known Display Interface b0c0
+00001633211i[BXVGA ] VBE known Display Interface b0c5
+00001634632i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
+00005322397i[BIOS  ] IDE time out
+00051828243i[BIOS  ] Booting from 07c0:0000
+00230389058i[SER   ] com1: FIFO enabled

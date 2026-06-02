@@ -34,8 +34,8 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   kb_init();
 
   initMem(boot_data);
-  //reMapPages(boot_data);
-
+ 
+  
   asm volatile("sti"); while(1);
 } 
 
