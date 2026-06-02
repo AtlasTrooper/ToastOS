@@ -23,6 +23,7 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   serial_init(SERIAL_COM1_START);
   init_timer();
   
+  //play_sandstorm();
   //speaker_config(600);
   //asm volatile ("int $0");
 
@@ -33,6 +34,7 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   kb_init();
 
   initMem(boot_data);
+  //reMapPages(boot_data);
 
   asm volatile("sti"); while(1);
 } 

@@ -1,41 +1,6 @@
 #include "memory.h"
 
-/*This is Outdated, use new paging based initMem
-//Presents the memory regions and their types using multiboot
-void multiboot_mmap(multiboot_info* boot_data){
-    for(int i =0; i < boot_data->mmap_length; i+= sizeof(multiboot_mmap_entry)){
-        
-        multiboot_mmap_entry *indexEntry = (multiboot_mmap_entry*)(boot_data->mmap_addr + i);
-        
-        printf(" Addr lo: %x | Addr hi: %x | Len lo:  %x | Len hi: %x | Size: %x |\n |Type: ",
-        indexEntry->addr_lo, indexEntry->addr_hi, indexEntry->len_lo, indexEntry->len_hi, indexEntry->size);
-        
-        switch(indexEntry->type){
-            case 1:
-                printf("MULTIBOOT_MEMORY_AVAILABLE");
-                break;
-            case 2:
-                printf("MULTIBOOT_MEMORY_RESERVED");
-                break;
-            case 3:
-                printf("MULTIBOOT_MEMORY_ACPI_RECLAIMABLE");
-                break;
-            case 4:
-                printf("MULTIBOOT_MEMORY_NVS");
-                break;
-            case 5:
-                printf("MULTIBOOT_MEMORY_BADRAM");
-                break;
-            default:
-                break;
-        }
-        printf("|\n");
-    }
-}
-*/
-
-//uint32_t* b_map;
-//uint32_t max_frames;
+#define PAGE_SIZE 4096
 
 void *memset(void *dest, int val, unsigned int iter){
     unsigned char* ptr =dest;
@@ -45,17 +10,19 @@ void *memset(void *dest, int val, unsigned int iter){
     return dest;
 }
 
-void initMem(multiboot_info* boot_data){
-    uintptr_t v_addr_s = (uintptr_t) &_kernel_v_start;
-    uintptr_t v_addr_e = (uintptr_t) &_kernel_v_end;
+static uintptr_t v_addr_s = (uintptr_t) &_kernel_v_start;
+static uintptr_t v_addr_e = (uintptr_t) &_kernel_v_end;
+static uintptr_t p_addr_s = (uintptr_t) &_kernel_p_start;
+static uintptr_t p_addr_e = (uintptr_t) &_kernel_p_end;
 
-    uintptr_t p_addr_s = (uintptr_t) &_kernel_p_start;
-    uintptr_t p_addr_e = (uintptr_t) &_kernel_p_end;
+static uint32_t* pd_v_addr = (uint32_t*)(0xFFFFF000);
+
+void initMem(multiboot_info* boot_data){
+    
 
     multiboot_info *mboot = (multiboot_info *)((uintptr_t)boot_data + KERNEL_START);
     max_frames = (mboot->mem_upper + 1024)/4; //in 4KB
     uint32_t chunk_count = max_frames/32; //uint32 contains 32 4kb frame trackers
-
     b_map = (uint32_t*)(v_addr_e);
 
     memset(b_map, 0, chunk_count*sizeof(uint32_t));
@@ -79,22 +46,29 @@ void initMem(multiboot_info* boot_data){
     printf("First available physical frame: %p \n\n", p_alloc_s);
 
     printf("Reconfiguring page tables... setting up 4KB pages\n");
-
     
+    page_directory[0] = 0;
+    invalidate_page(0);
     page_directory[1023] = ((uint32_t) page_directory - KERNEL_START) | 0x3;
-    //printf("%d LAST STOP\n", page_directory[1023]);
     invalidate_page(0xFFFFF000);
 
     printf("[Starting mapping sequence!]\n");
+    printf("page_directory phys: %p\n", (uint32_t)page_directory - KERNEL_START);
+    printf("p_bitmap_e(Rounded): %p\n", p_alloc_s);
 
-    for(uint32_t i = (uint32_t)p_addr_s; i < (uint32_t)p_bitmap_e; i+=PAGE_SIZE){
+    for(uint32_t i = (uint32_t)p_addr_s; i < (uint32_t)p_alloc_s; i+=PAGE_SIZE){
         map_page(i+KERNEL_START, i, 0x3);
     }
 
-    uint32_t p_pd_addr = (uint32_t)&(page_directory)-KERNEL_START;
+    uint32_t p_pd_addr = (uint32_t)(page_directory)-KERNEL_START;
+
+    // printf("pd phys addr:   %p\n", p_pd_addr);
+    // printf("pd virt addr:   %p\n", page_directory);
+    // printf("pd[1023] entry: %p\n", page_directory[1023]);
+    // printf("pd[0] entry:    %p\n", page_directory[0]);
 
     reload_CR3(p_pd_addr);
-
+    
     printf("[Mapping sequence complete!]\n");
     
 }
@@ -139,22 +113,23 @@ void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags){
     uint32_t pt_index = ((v_addr >> 12) & 0x03FF);
 
     uint32_t* pt_v_addr = (uint32_t*)(0xFFC00000) + (0x400 * pd_index);
-    uint32_t* pd_v_addr = (uint32_t*)(0xFFFFF000);
+    
 
     if(!(pd_v_addr[pd_index] & 0x1)){
+        //printf("Entered the if statement!\n");
         uint32_t new_pt_p_addr = alloc_frame();
         printf("NEW PT AT %p \n", new_pt_p_addr);
         pd_v_addr[pd_index] = new_pt_p_addr | pdt_flags;
 
-        invalidate_page(*pt_v_addr);
+        invalidate_page((uint32_t)pt_v_addr);
 
-        memset(pt_v_addr, 0, 4096);
+        memset(pt_v_addr, 0, PAGE_SIZE);
     }
 
     //uint32_t *pt = (uint32_t *)((page_directory[pd_index] & ~0xFFF)+KERNEL_START);
     pt_v_addr[pt_index] = p_addr | pdt_flags;
     
-    debug_print("Mapped page\n");
+    debug_print("Mapped page \n");
 }
 
 void reload_CR3(uint32_t p_pd_addr){

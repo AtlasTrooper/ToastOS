@@ -65,7 +65,8 @@ page_directory:
   .long (2 << 22) | 0x83
   .long (3 << 22) | 0x83
 
-  .fill 252, 4, 0
+  .fill 251, 4, 0
+  .long 0
 
 
 

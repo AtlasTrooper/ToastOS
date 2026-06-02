@@ -24,7 +24,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7f158a3dd010. after alignment, vector=0x7f158a3de000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7fbd025dd010. after alignment, vector=0x7fbd025de000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -36,7 +36,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Tue May 12 11:09:16   2026 tz=utc (time0=1778584156)
+00000000000i[CMOS  ] Setting initial clock to: Tue Jun  2 12:43:13   2026 tz=utc (time0=1780404193)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -232,4 +232,4 @@
 00001650383i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
 00005338148i[BIOS  ] IDE time out
 00051828244i[BIOS  ] Booting from 07c0:0000
-00113857777i[SER   ] com1: FIFO enabled
+00137988211i[SER   ] com1: FIFO enabled
