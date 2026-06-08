@@ -7,16 +7,6 @@
 //IO port commands
 #define FB_HIGH_COM 14
 #define FB_LO_COM 15
-
-size_t strlen(const char * str){
-  size_t len = 0;
-  while(str[len]){
-    len+=1;
-  }
-  return len;
-
-}
-
 #define VGA_W 80
 #define VGA_H 25
 //TODO: don't forget to push this to it's new v_addr to account for the higher half and remapped page tables
@@ -140,3 +130,28 @@ void fb_move_cursor(unsigned short pos){
   outb(FB_DATA_PORT, pos & 0x00FF);
   
 }
+
+size_t strlen(const char * str){
+  size_t len = 0;
+  while(str[len]){
+    len+=1;
+  }
+  return len;
+
+}
+
+int strcmp(const char *a, const char *b) {
+    while (*a && *a == *b) { a++; b++; }
+    return (unsigned char)*a - (unsigned char)*b;
+}
+
+int sh_strncmp(const char *a, const char *b, size_t n) {
+    while (n-- && *a && *a == *b) { a++; b++; }
+    if (!n) return 0;           // first n chars matched
+    return (unsigned char)*a - (unsigned char)*b;
+}
+
+void sh_strcpy(char *dst, const char *src) {
+    while ((*dst++ = *src++));
+}
+

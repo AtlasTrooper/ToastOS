@@ -8,6 +8,7 @@
 #include "memoryMan/multiboot.h"
 #include "memoryMan/memory.h"
 #include "stdlib/malloc.h"
+#include "shell/tsh.h"
 
 #if defined(__linux__)
 #error "You are not using your cross comp, go do that!"
@@ -24,10 +25,6 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
   serial_init(SERIAL_COM1_START);
   init_timer();
 
-  putstr("=================================================================\n");
-  putstr("Welcome to the Toast Operating System| est. 2026 Tomer Wiesel    \n(eden was here :)\n");
-  putstr("=================================================================\n");
-  
   kb_init();
 
   initMem(boot_data);

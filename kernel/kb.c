@@ -7,9 +7,34 @@ keymap_t def_layout = {
     { 0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', 0, ' ' }
 };
 
-int caps_on;
-int shift;
-int numlock;
+static int caps_on;
+static int shift;
+static int numlock;
+
+static volatile char kbuf[KB_BUF_SIZE];
+static volatile uint32_t kbuf_head = 0;
+static volatile uint32_t kbuf_tail = 0; 
+
+void kb_enqueue(char c) {
+    if ((kbuf_head - kbuf_tail) >= KB_BUF_SIZE) {
+        return;
+    }
+    kbuf[kbuf_head & (KB_BUF_SIZE - 1)] = c;
+    kbuf_head++;
+}
+
+int kb_haschar() {
+    return kbuf_head != kbuf_tail;
+}
+
+char kb_getchar() {
+    while(!kb_haschar()) {
+        asm volatile("hlt");
+    }
+    char c = kbuf[kbuf_tail & (KB_BUF_SIZE -1)];
+    kbuf_tail++;
+    return c;
+}
 
 void kb_handler(system_state *sys){
     unsigned char scancode;
@@ -18,18 +43,18 @@ void kb_handler(system_state *sys){
 
     if(scancode == L_SHIFT || scancode == R_SHIFT){
             shift = 1;
-            //printf(" |SHIFT %s|\n", shift == 1? "ON" : "OFF");
     }
     else if(scancode == CAPS_LOCK){
             caps_on = !caps_on;
-            //printf(" [CAPS %s]\n", caps_on == 1? "ON" : "OFF");
     }
     else if((scancode & RELEASED) && (scancode == REL_SHIFT_L || scancode == REL_SHIFT_R)){
             shift = 0;
-            //printf(" |SHIFT %s|\n", shift == 1? "ON" : "OFF");
     }
-    else if (!(scancode & RELEASED)){
-        (shift ^ caps_on) ? printf("%c", def_layout.upper[scancode]) : printf("%c", def_layout.lower[scancode]);
+    else if (!(scancode & RELEASED) && scancode < 128){
+        char c = (shift ^ caps_on) 
+        ? (char)def_layout.upper[scancode]
+        : (char)def_layout.lower[scancode];
+        if (c) kb_enqueue(c);
     }
 }
 
@@ -37,6 +62,5 @@ void kb_init(){
     caps_on = 0;
     shift = 0;
     irq_assign_handler(1, kb_handler);
-    //printf("\nKEYBOARD INITIALIZED, CURRENT LAYOUT: %s \n", def_layout.name);
 }
 

@@ -49,7 +49,7 @@ void initMem(multiboot_info* boot_data){
 
     reload_CR3(p_pd_addr);
     
-    printf("[Mapping sequence complete!]\n");
+    //printf("[Mapping sequence complete!]\n");
     
 }
 

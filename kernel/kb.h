@@ -1,4 +1,4 @@
-
+#pragma once
 #include "io.h"
 #include "vga.h"
 #include "interrupts/idt.h"
@@ -14,6 +14,8 @@
 
 #define CAPS_LOCK 0x3A
 
+#define KB_BUF_SIZE 256
+
 typedef struct PACKED {
     char name[16];
     uint8_t lower[128];
@@ -25,6 +27,11 @@ typedef enum SCANSET{
     TWO,
     THREE
 }SCANSET;
+
+void kb_enqueue(char c);
+int kb_haschar();
+char kb_getchar();
+
 
 void kb_handler(system_state *sys);
 void kb_init();
