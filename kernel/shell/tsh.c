@@ -69,7 +69,8 @@ int parse_args(char *line, char **argv, int max_args) {
     int argc = 0;
 
     while(line != NULL) {
-        if (*line && *line == ' ') {line++; continue;}
+        while (*line == ' ') {line++;}
+        if (!*line) break;
         argv[argc++] = line;
         while (*line && *line != ' ') {line++;}
         if (*line) *line++ = '\0';
@@ -82,6 +83,8 @@ int parse_args(char *line, char **argv, int max_args) {
 void shell_exec(char *line) {
     char *argv[ARGC_MAX];
     int argc = parse_args(line, argv, ARGC_MAX);
+    
+    printf("%d", argc);
 
     for(int i = 0; i < argc; i++) {
         printf("%s \n", argv[i]);
