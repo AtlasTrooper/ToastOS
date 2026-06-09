@@ -69,7 +69,7 @@ int parse_args(char *line, char **argv, int max_args) {
     int argc = 0;
 
     while(line != NULL) {
-        while (*line == ' ') {line++;}
+        if (*line == ' ') {line++; continue;}
         if (!*line) break;
         argv[argc++] = line;
         while (*line && *line != ' ') {line++;}
@@ -83,18 +83,49 @@ int parse_args(char *line, char **argv, int max_args) {
 void shell_exec(char *line) {
     char *argv[ARGC_MAX];
     int argc = parse_args(line, argv, ARGC_MAX);
-    
-    printf("%d", argc);
 
-    for(int i = 0; i < argc; i++) {
-        printf("%s \n", argv[i]);
+    int cmd_length = sizeof(commands)/sizeof(command_t);
+    for(int i = 0; i < cmd_length; i++) {
+        if (strcmp(argv[0], commands[i].name) == 0) {
+            commands[i].ptr(argc, argv);
+            return;
+        }
     }
+
+    printf("Sorry, bad command, try again.\n");
 }
 
 void shell_clear() {
     memset(buf, 0, KBUF_SIZE);
     terminal_clear();
     print_prompt();
+}
+
+void cmd_help(int argc, char **argv) {
+    if (argc < 2) {
+        putstr("No command given, printing all commands\n");
+        for (int i = 0; i < sizeof(commands)/sizeof(command_t); i++) {
+            printf("%s : %s \n", commands[i].name, commands[i].help_msg);
+        }
+    } else {
+        for (int i = 0; i < sizeof(commands)/sizeof(command_t); i++) {
+            if (strcmp(argv[1], commands[i].name) == 0) {
+                printf("%s \n", commands[i].help_msg);
+            }
+        }
+    }
+}
+
+void cmd_darud(int argc, char **argv) {
+    play_sandstorm();
+}
+
+void cmd_echo(int argc, char **argv) {
+    for (int i = 1; i < argc; i++) {
+        putstr(argv[i]);
+        if (i < argc-1) putchar(' ');
+    }
+    putchar('\n');
 }
 
 void print_banner(void) {

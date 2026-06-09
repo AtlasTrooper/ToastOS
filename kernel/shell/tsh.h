@@ -4,21 +4,8 @@
 #include "../serial.h"
 #include "../io.h"
 #include "../kb.h"
+#include "../timer.h"
 #include "../memoryMan/memory.h"
-
-typedef void (*cmd_func) (int argc, char **argv);
-
-
-typedef struct command_t {
-    const char* name;
-    cmd_func ptr;
-    const char* help_msg;
-
-} command_t;
-
-static const command_t commands[] = {
-    {}
-};
 
 //Base shell functions
 
@@ -33,8 +20,26 @@ void update_history(char * arg);
 char * get_prev_cmd();
 
 //Commands
-
+void cmd_help(int argc, char **argv);
+void cmd_echo(int argc, char **argv);
+void cmd_darud(int argc, char **argv);
 
 //decor(totally necessary)
 void print_banner();
 void print_prompt();
+
+typedef void (*cmd_func) (int argc, char **argv);
+
+
+typedef struct command_t {
+    const char* name;
+    cmd_func ptr;
+    const char* help_msg;
+
+} command_t;
+
+static const command_t commands[] = {
+    {"help", cmd_help, "Explains the operations of different commands"},
+    {"echo", cmd_echo, "Prints the line following the command word" },
+    {"darud", cmd_darud, "Da rude sandstorm"}
+};
