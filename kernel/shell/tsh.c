@@ -10,9 +10,9 @@ and stack allocated soon to be malloced and heap allocated
 
 static int history_count = 0; 
 static char cmd_history[HISTORY_MAX][KBUF_SIZE];
-
+static char buf[KBUF_SIZE];
 void init_shell() {
-    char buf[KBUF_SIZE];
+    // char buf[KBUF_SIZE];
 
     print_banner();
 
@@ -20,6 +20,9 @@ void init_shell() {
         print_prompt();
         readline(buf, KBUF_SIZE);
         if(!buf[0]) {continue;}
+
+        shell_exec(buf);
+
     }
 }
 
@@ -63,7 +66,32 @@ void readline(char *buf, int max){
 }
 
 int parse_args(char *line, char **argv, int max_args) {
-    
+    int argc = 0;
+
+    while(line != NULL) {
+        if (*line && *line == ' ') {line++; continue;}
+        argv[argc++] = line;
+        while (*line && *line != ' ') {line++;}
+        if (*line) *line++ = '\0';
+        if (argc == ARGC_MAX) break;
+    }
+    return argc;
+
+}
+
+void shell_exec(char *line) {
+    char *argv[ARGC_MAX];
+    int argc = parse_args(line, argv, ARGC_MAX);
+
+    for(int i = 0; i < argc; i++) {
+        printf("%s \n", argv[i]);
+    }
+}
+
+void shell_clear() {
+    memset(buf, 0, KBUF_SIZE);
+    terminal_clear();
+    print_prompt();
 }
 
 void print_banner(void) {
@@ -81,5 +109,3 @@ void print_prompt(void) {
     putstr("> ");
     terminal_set_color(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
 }
-
-

@@ -1,5 +1,6 @@
 #include "kb.h"
 #include "stdlib/stdio.h"
+#include "shell/tsh.h"
 
 keymap_t def_layout = {
     "US-English",
@@ -8,6 +9,7 @@ keymap_t def_layout = {
 };
 
 static int caps_on;
+static int ctrl;
 static int shift;
 static int numlock;
 
@@ -50,17 +52,31 @@ void kb_handler(system_state *sys){
     else if((scancode & RELEASED) && (scancode == REL_SHIFT_L || scancode == REL_SHIFT_R)){
             shift = 0;
     }
+    else if(scancode == L_CTRL) {
+        ctrl = 1;
+    } 
+    else if((scancode & RELEASED) && (scancode == REL_CTRL_L)) {
+        ctrl = 0;
+    }
     else if (!(scancode & RELEASED) && scancode < 128){
-        char c = (shift ^ caps_on) 
-        ? (char)def_layout.upper[scancode]
-        : (char)def_layout.lower[scancode];
-        if (c) kb_enqueue(c);
+        if(ctrl) {
+            switch(def_layout.lower[scancode]) {
+                case 'l': shell_clear(); break;
+                default: break;
+            }
+        } else {
+            char c = (shift ^ caps_on) 
+            ? (char)def_layout.upper[scancode]
+            : (char)def_layout.lower[scancode];
+            if (c) kb_enqueue(c);
+        }
     }
 }
 
 void kb_init(){
     caps_on = 0;
     shift = 0;
+    ctrl = 0;
     irq_assign_handler(1, kb_handler);
 }
 

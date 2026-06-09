@@ -26,7 +26,7 @@ void init_shell();
 void readline(char *buf, int max);
 int parse_args(char *line, char **argv, int max_args);
 void shell_exec(char *line);
-
+void shell_clear();
 //History functions
 
 void update_history(char * arg);

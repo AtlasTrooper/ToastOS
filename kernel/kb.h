@@ -6,6 +6,13 @@
 #define KB_COM 0x64
 #define RELEASED 0x80
 
+#define L_CTRL 0x1D
+#define REL_CTRL_L 0x9D
+
+//from scancode set 2, not sure if I added that or not
+#define R_CTRL 0xE0 0x1D
+#define REL_CTRL_R 0xE0 0x9D
+
 #define L_SHIFT 0x2A
 #define R_SHIFT 0x36
 
