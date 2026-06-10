@@ -12,10 +12,10 @@
 //TODO: don't forget to push this to it's new v_addr to account for the higher half and remapped page tables
 #define VGA_MEM 0xC00B8000
 
-size_t terminal_row;
-size_t terminal_col;
-uint8_t terminal_color;
-uint16_t* terminal_buff = (uint16_t*)VGA_MEM;
+static size_t terminal_row;
+static size_t terminal_col;
+static uint8_t terminal_color;
+static uint16_t* terminal_buff = (uint16_t*)VGA_MEM;
 void terminal_init(void){
   
   terminal_row = 0;
@@ -53,6 +53,21 @@ void newLine(){
     terminal_scroll();
     terminal_col = 0;
   }
+}
+
+void clearLine(size_t row) {
+  if(row < 0 || row > 80) return;
+
+  for(size_t w=0; w<VGA_W; w++){
+      const size_t index = row * VGA_W + w;
+      terminal_buff[index] = vga_entry(' ', terminal_color);
+  }
+  terminal_col = 0;
+  fb_move_cursor((size_t)row * VGA_W);
+}
+
+void clearCurrentLine() {
+  clearLine(terminal_row);
 }
 
 void putchar(char c){

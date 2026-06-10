@@ -11,7 +11,7 @@ and stack allocated soon to be malloced and heap allocated
 static int history_count = 0; 
 static char cmd_history[HISTORY_MAX][KBUF_SIZE];
 static char buf[KBUF_SIZE];
-static char* prev_cmd = cmd_history[0];
+static int prev_command_index = 0;
 void init_shell() {
     // char buf[KBUF_SIZE];
     print_banner();
@@ -104,15 +104,20 @@ void shell_clear() {
 
 void update_history(char *line) {
     if(!line[0]) return;
-    prev_cmd = cmd_history[(history_count)%HISTORY_MAX];
+    prev_command_index = (history_count%HISTORY_MAX);
     strcpy(cmd_history[(history_count++)%HISTORY_MAX], line);
 }
 
 void get_prev_cmd() {
     //debug_print("UP\n");
     memset(buf, 0, KBUF_SIZE);
-    strcpy(buf, prev_cmd);
-    readline(buf, KBUF_SIZE);
+    clearCurrentLine();
+    print_prompt();
+    strcpy(buf, cmd_history[prev_command_index]);
+    putstr(buf);
+    if (strlen(cmd_history[(prev_command_index-1)%HISTORY_MAX]) != 0) {
+        prev_command_index = (prev_command_index-1)%HISTORY_MAX;
+    }
 }
 
 

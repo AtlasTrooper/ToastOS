@@ -25,6 +25,8 @@ enum vga_color {
 
 
 void newLine();
+void clearLine(size_t row);
+void clearCurrentLine();
 void terminal_init(void);
 void terminal_set_color(uint8_t color);
 void terminal_putEntryAt(char c, uint8_t color, size_t x, size_t y);
