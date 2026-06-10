@@ -12,6 +12,7 @@ static int caps_on;
 static int ctrl;
 static int shift;
 static int numlock;
+static int extended = 0;
 
 static volatile char kbuf[KB_BUF_SIZE];
 static volatile uint32_t kbuf_head = 0;
@@ -42,6 +43,22 @@ void kb_handler(system_state *sys){
     unsigned char scancode;
 
     scancode = inb(KB_DATA);
+
+    if (scancode == 0xE0) {
+        extended = 1;
+        return;
+    }
+
+    if (extended) {
+        extended = 0;
+        switch(scancode) {
+            case UP_ARROW:
+                get_prev_cmd();
+                break;
+            default: break;
+        }
+        return;
+    }
 
     if(scancode == L_SHIFT || scancode == R_SHIFT){
             shift = 1;

@@ -9,9 +9,7 @@
 #define L_CTRL 0x1D
 #define REL_CTRL_L 0x9D
 
-//from scancode set 2, not sure if I added that or not
-#define R_CTRL 0xE0 0x1D
-#define REL_CTRL_R 0xE0 0x9D
+
 
 #define L_SHIFT 0x2A
 #define R_SHIFT 0x36
@@ -22,6 +20,13 @@
 #define CAPS_LOCK 0x3A
 
 #define KB_BUF_SIZE 256
+
+//EXTENDED
+#define R_CTRL 0x1D
+#define REL_CTRL_R 0x9D
+
+#define UP_ARROW 0x48
+#define DOWN_ARROW 0x50
 
 typedef struct PACKED {
     char name[16];

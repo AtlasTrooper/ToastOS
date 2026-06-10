@@ -145,13 +145,13 @@ int strcmp(const char *a, const char *b) {
     return (unsigned char)*a - (unsigned char)*b;
 }
 
-int sh_strncmp(const char *a, const char *b, size_t n) {
+int strncmp(const char *a, const char *b, size_t n) {
     while (n-- && *a && *a == *b) { a++; b++; }
     if (!n) return 0;           // first n chars matched
     return (unsigned char)*a - (unsigned char)*b;
 }
 
-void sh_strcpy(char *dst, const char *src) {
+void strcpy(char *dst, const char *src) {
     while ((*dst++ = *src++));
 }
 

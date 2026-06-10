@@ -16,13 +16,14 @@ void shell_exec(char *line);
 void shell_clear();
 //History functions
 
-void update_history(char * arg);
-char * get_prev_cmd();
+void update_history(char *line);
+void get_prev_cmd();
 
 //Commands
 void cmd_help(int argc, char **argv);
 void cmd_echo(int argc, char **argv);
 void cmd_darud(int argc, char **argv);
+void cmd_lsh(int argc, char **argv);
 
 //decor(totally necessary)
 void print_banner();
@@ -41,5 +42,6 @@ typedef struct command_t {
 static const command_t commands[] = {
     {"help", cmd_help, "Explains the operations of different commands"},
     {"echo", cmd_echo, "Prints the line following the command word" },
-    {"darud", cmd_darud, "Da rude sandstorm"}
+    {"darud", cmd_darud, "Da rude sandstorm"},
+    {"lsh", cmd_lsh, "Prints the the (at most 8) most recent commands the user has used"}
 };

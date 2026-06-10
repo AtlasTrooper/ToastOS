@@ -11,9 +11,9 @@ and stack allocated soon to be malloced and heap allocated
 static int history_count = 0; 
 static char cmd_history[HISTORY_MAX][KBUF_SIZE];
 static char buf[KBUF_SIZE];
+static char* prev_cmd = cmd_history[0];
 void init_shell() {
     // char buf[KBUF_SIZE];
-
     print_banner();
 
     while(1) {
@@ -21,6 +21,7 @@ void init_shell() {
         readline(buf, KBUF_SIZE);
         if(!buf[0]) {continue;}
 
+        update_history(buf);
         shell_exec(buf);
 
     }
@@ -101,12 +102,29 @@ void shell_clear() {
     print_prompt();
 }
 
+void update_history(char *line) {
+    if(!line[0]) return;
+    prev_cmd = cmd_history[(history_count)%HISTORY_MAX];
+    strcpy(cmd_history[(history_count++)%HISTORY_MAX], line);
+}
+
+void get_prev_cmd() {
+    //debug_print("UP\n");
+    memset(buf, 0, KBUF_SIZE);
+    strcpy(buf, prev_cmd);
+    readline(buf, KBUF_SIZE);
+}
+
+
 void cmd_help(int argc, char **argv) {
     if (argc < 2) {
-        putstr("No command given, printing all commands\n");
+        putstr("No command given, printing all commands\n\n");
+        putstr("                 CMD LIST                   ");
+        putstr("\n---------------------------------------\n");
         for (int i = 0; i < sizeof(commands)/sizeof(command_t); i++) {
             printf("%s : %s \n", commands[i].name, commands[i].help_msg);
         }
+        putstr("---------------------------------------\n");
     } else {
         for (int i = 0; i < sizeof(commands)/sizeof(command_t); i++) {
             if (strcmp(argv[1], commands[i].name) == 0) {
@@ -126,6 +144,12 @@ void cmd_echo(int argc, char **argv) {
         if (i < argc-1) putchar(' ');
     }
     putchar('\n');
+}
+
+void cmd_lsh(int argc, char **argv) {
+    for(int i = 0; i < (history_count%HISTORY_MAX); i++) {
+        printf("%d : %s \n", i, cmd_history[i]);
+    }
 }
 
 void print_banner(void) {
