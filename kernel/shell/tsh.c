@@ -4,13 +4,13 @@
 max size of a single command, currently hardcoded 
 and stack allocated soon to be malloced and heap allocated
 */
-#define KBUF_SIZE 256
 #define ARGC_MAX 16
 #define HISTORY_MAX 8
 
 static int history_count = 0; 
-static char cmd_history[HISTORY_MAX][KBUF_SIZE];
-static char buf[KBUF_SIZE];
+static char cmd_history[HISTORY_MAX][KB_BUF_SIZE];
+static char buf[KB_BUF_SIZE];
+static int buf_index = 0;
 static int prev_command_index = 0;
 void init_shell() {
     // char buf[KBUF_SIZE];
@@ -18,7 +18,7 @@ void init_shell() {
 
     while(1) {
         print_prompt();
-        readline(buf, KBUF_SIZE);
+        readline(buf, KB_BUF_SIZE);
         if(!buf[0]) {continue;}
 
         update_history(buf);
@@ -28,7 +28,7 @@ void init_shell() {
 }
 
 void readline(char *buf, int max){
-    int i = 0;
+    buf_index = 0;
     memset(buf, 0, max);
 
     while (1) {
@@ -42,13 +42,13 @@ void readline(char *buf, int max){
         switch(c) {
             case '\n':
             case '\r':
-                buf[i] == '\0';
+                buf[buf_index] == '\0';
                 putchar('\n');
                 return;
             case '\b':
-                if (i > 0) {
-                    i--;
-                    buf[i] = '\0';
+                if (buf_index > 0) {
+                    buf_index--;
+                    buf[buf_index] = '\0';
                     putchar('\b');
                     //putchar(' ');
                     //putchar('\b');
@@ -58,8 +58,8 @@ void readline(char *buf, int max){
             default:
                 break;
         }
-        if (i < max -1) {
-            buf[i++] = c;
+        if (buf_index < max -1) {
+            buf[buf_index++] = c;
             putchar(c);
         }
     }
@@ -97,7 +97,7 @@ void shell_exec(char *line) {
 }
 
 void shell_clear() {
-    memset(buf, 0, KBUF_SIZE);
+    memset(buf, 0, KB_BUF_SIZE);
     terminal_clear();
     print_prompt();
 }
@@ -106,20 +106,41 @@ void update_history(char *line) {
     if(!line[0]) return;
     prev_command_index = (history_count%HISTORY_MAX);
     strcpy(cmd_history[(history_count++)%HISTORY_MAX], line);
+    if((history_count%HISTORY_MAX) == 0) history_count = 0;
 }
 
 void get_prev_cmd() {
-    //debug_print("UP\n");
-    memset(buf, 0, KBUF_SIZE);
+    memset(buf, 0, KB_BUF_SIZE);
     clearCurrentLine();
     print_prompt();
+
+    int prev_idx = (prev_command_index-1 + HISTORY_MAX)%HISTORY_MAX;
+
+    if (strlen(cmd_history[prev_idx]) >= 2) {
+        prev_command_index = prev_idx;
+    }
+
     strcpy(buf, cmd_history[prev_command_index]);
     putstr(buf);
-    if (strlen(cmd_history[(prev_command_index-1)%HISTORY_MAX]) != 0) {
-        prev_command_index = (prev_command_index-1)%HISTORY_MAX;
-    }
+
+    buf_index = strlen(buf);
 }
 
+void get_next_cmd() {
+    memset(buf, 0, KB_BUF_SIZE);
+    clearCurrentLine();
+    print_prompt();
+    
+    int next_idx = (prev_command_index + 1)%HISTORY_MAX;
+
+    if (strlen(cmd_history[next_idx]) >= 2) {
+        prev_command_index = next_idx;
+        strcpy(buf, cmd_history[prev_command_index]);
+        putstr(buf);
+    }
+
+    buf_index = strlen(buf);
+}
 
 void cmd_help(int argc, char **argv) {
     if (argc < 2) {

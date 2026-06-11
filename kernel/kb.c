@@ -55,6 +55,10 @@ void kb_handler(system_state *sys){
             case UP_ARROW:
                 get_prev_cmd();
                 break;
+
+            case DOWN_ARROW:
+                get_next_cmd();
+                break;
             default: break;
         }
         return;

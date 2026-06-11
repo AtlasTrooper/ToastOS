@@ -18,6 +18,7 @@ void shell_clear();
 
 void update_history(char *line);
 void get_prev_cmd();
+void get_next_cmd();
 
 //Commands
 void cmd_help(int argc, char **argv);

@@ -2,6 +2,7 @@
 #include "io.h"
 #include "vga.h"
 #include "interrupts/idt.h"
+#include "stdlib/stdio.h"
 #define KB_DATA 0x60
 #define KB_COM 0x64
 #define RELEASED 0x80
