@@ -25,6 +25,7 @@ void cmd_help(int argc, char **argv);
 void cmd_echo(int argc, char **argv);
 void cmd_darud(int argc, char **argv);
 void cmd_lsh(int argc, char **argv);
+void cmd_exit(int argc, char **argv);
 
 //decor(totally necessary)
 void print_banner();
@@ -44,5 +45,6 @@ static const command_t commands[] = {
     {"help", cmd_help, "Explains the operations of different commands"},
     {"echo", cmd_echo, "Prints the line following the command word" },
     {"darud", cmd_darud, "Da rude sandstorm"},
-    {"lsh", cmd_lsh, "Prints the the (at most 8) most recent commands the user has used"}
+    {"lsh", cmd_lsh, "Prints the the (at most 8) most recent commands the user has used"},
+    {"exit", cmd_exit, "Gracefully shuts down and exits the os"}
 };

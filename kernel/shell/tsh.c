@@ -178,6 +178,15 @@ void cmd_lsh(int argc, char **argv) {
     }
 }
 
+/*
+Once the OS becomes more advanced, this will be phased
+out for a function that prunes everything while also saving state.
+*/
+void cmd_exit(int argc, char **argv) {
+    putstr("Halting CPU, adios amigo!\n");
+    asm volatile("cli; hlt");
+}
+
 void print_banner(void) {
     terminal_set_color(vga_entry_color(VGA_LIGHT_BROWN, VGA_BLACK));
     putstr("=================================================================\n");
