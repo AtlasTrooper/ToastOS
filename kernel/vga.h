@@ -37,11 +37,6 @@ void terminal_scroll();
 void fb_move_cursor(unsigned short pos);
 void terminal_clear();
 
-size_t strlen(const char * str);
-int strcmp(const char * a, const char *b);
-int strncmp(const char *a, const char *b, size_t n);
-void strcpy(char *dst, const char *src);
-
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg){
 
 return fg | bg << 4;

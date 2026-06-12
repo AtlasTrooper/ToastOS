@@ -1,5 +1,6 @@
 build/shell/tsh.o: kernel/shell/tsh.c kernel/shell/tsh.h \
- kernel/shell/../vga.h kernel/shell/../qol.h kernel/shell/../serial.h \
+ kernel/shell/../vga.h kernel/shell/../qol.h \
+ kernel/shell/../stdlib/string.h kernel/shell/../serial.h \
  kernel/shell/../io.h kernel/shell/../io.h kernel/shell/../kb.h \
  kernel/shell/../interrupts/idt.h \
  kernel/shell/../interrupts/../memoryMan/memory.h \
@@ -11,6 +12,7 @@ build/shell/tsh.o: kernel/shell/tsh.c kernel/shell/tsh.h \
 kernel/shell/tsh.h:
 kernel/shell/../vga.h:
 kernel/shell/../qol.h:
+kernel/shell/../stdlib/string.h:
 kernel/shell/../serial.h:
 kernel/shell/../io.h:
 kernel/shell/../io.h:

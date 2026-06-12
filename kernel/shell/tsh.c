@@ -104,8 +104,8 @@ void shell_clear() {
 
 void update_history(char *line) {
     if(!line[0]) return;
-    prev_command_index = (history_count%HISTORY_MAX);
     strcpy(cmd_history[(history_count++)%HISTORY_MAX], line);
+    prev_command_index = (history_count%HISTORY_MAX);
     if((history_count%HISTORY_MAX) == 0) history_count = 0;
 }
 

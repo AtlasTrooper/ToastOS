@@ -1,5 +1,6 @@
 build/interrupts/idt.o: kernel/interrupts/idt.c kernel/interrupts/idt.h \
- kernel/interrupts/../qol.h kernel/interrupts/../memoryMan/memory.h \
+ kernel/interrupts/../qol.h kernel/interrupts/../stdlib/string.h \
+ kernel/interrupts/../memoryMan/memory.h \
  kernel/interrupts/../memoryMan/multiboot.h \
  kernel/interrupts/../memoryMan/../stdlib/stdio.h \
  kernel/interrupts/../memoryMan/../serial.h \
@@ -8,6 +9,7 @@ build/interrupts/idt.o: kernel/interrupts/idt.c kernel/interrupts/idt.h \
  kernel/interrupts/../vga.h kernel/interrupts/../stdlib/stdio.h
 kernel/interrupts/idt.h:
 kernel/interrupts/../qol.h:
+kernel/interrupts/../stdlib/string.h:
 kernel/interrupts/../memoryMan/memory.h:
 kernel/interrupts/../memoryMan/multiboot.h:
 kernel/interrupts/../memoryMan/../stdlib/stdio.h:
