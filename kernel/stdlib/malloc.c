@@ -1,6 +1,16 @@
 #include "malloc.h"
 #define MIN_ALLOC 1024
 
+/*
+This is my modified implementation of the "sample storage allocator"
+from 'The C programming language second edition' by Kernighan and Ritchie
+which utilizes my os' page frame allocation system as an alternative 
+to the sbrk routine.
+
+It may be modified in the future.
+
+*/
+
 //user mode dynamic storage allocator
 void * malloc(int numObytes){
     Header *p, *prevp;
@@ -34,11 +44,6 @@ void * malloc(int numObytes){
                 }
         }
     }
-
-}
-
-//kernel mode dynamic storage allocator
-void *kmalloc(int numObytes){
 
 }
 
