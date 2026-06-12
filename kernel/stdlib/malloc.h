@@ -1,5 +1,7 @@
 #include "../memoryMan/memory.h"
 
+
+
 //most restrictive possible align type
 typedef long align_tight;
 
@@ -19,8 +21,8 @@ static Header *free_lst = NULL;
 //kernel space malloc
 void * kmalloc(int size);
 void *malloc(int size);
-void free(void *p);
+void free(void *ptr);
 
-// static Header *morebytes(unsigned numOUnits);
+static Header *morebytes(unsigned numOUnits);
 
 

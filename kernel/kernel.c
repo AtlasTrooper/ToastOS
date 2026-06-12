@@ -27,7 +27,7 @@ void kernel_main(uint32_t magicNum, multiboot_info* boot_data){
 
   kb_init();
 
-  initMem(boot_data);
+  initPmm(boot_data);
   
   asm volatile("sti");
 

@@ -18,12 +18,19 @@ extern uint32_t page_directory[1024];
 static uint32_t *b_map;
 static uint32_t max_frames;
 
+extern uintptr_t k_heap_s;
+extern uintptr_t k_heap_max;
+
 void *memset(void *dest, int val, unsigned int iter);
 uint32_t alloc_frame();
 void free_frame(uint32_t p_addr);
 
-void initMem(multiboot_info* boot_data);
+void initPmm(multiboot_info* boot_data);
 void reMapPages(multiboot_info *boot_data);
 void map_page(uint32_t v_addr, uint32_t p_addr, uint32_t pdt_flags);
+void unmap_page(uint32_t v_addr);
 void invalidate_page(uint32_t addr);
 void reload_CR3(uint32_t p_pd_addr);
+
+void init_Kheap(uintptr_t heap_s);
+void *heapafus(int32_t inc);
