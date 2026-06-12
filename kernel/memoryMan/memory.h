@@ -18,8 +18,8 @@ extern uint32_t page_directory[1024];
 static uint32_t *b_map;
 static uint32_t max_frames;
 
-extern uintptr_t k_heap_s;
-extern uintptr_t k_heap_max;
+// extern uintptr_t k_heap_s;
+// extern uintptr_t k_heap_max;
 
 void *memset(void *dest, int val, unsigned int iter);
 uint32_t alloc_frame();

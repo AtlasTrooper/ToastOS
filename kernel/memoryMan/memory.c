@@ -144,7 +144,7 @@ void init_Kheap(uintptr_t heap_s) {
 }
 
 void *heapafus(int32_t inc) {
-    uintptr_t old_cur = k_heap_curr;
+    uintptr_t old_curr = k_heap_curr;
     uintptr_t new_curr = k_heap_curr + inc;
 
     /*
@@ -155,7 +155,7 @@ void *heapafus(int32_t inc) {
     */
     if(inc < 0) {
 
-        if(new_curr < kernel_heap_curr - increment && new_curr > old_curr){
+        if(new_curr < k_heap_curr - inc && new_curr > old_curr){
             // underflow / invalid shrink past start
             return (void*)-1;
         }
@@ -178,7 +178,7 @@ void *heapafus(int32_t inc) {
             return (void*)-1;
             
         }
-        map_page(k_heap_max, frame, 0x3);
+        map_page(k_heap_max, new_frame, 0x3);
         k_heap_max += PAGE_SIZE;
     }
 

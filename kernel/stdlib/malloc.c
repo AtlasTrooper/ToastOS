@@ -24,7 +24,7 @@ void * malloc(int numObytes){
         base.data.next = free_lst = prevp = &base;
         base.data.size = 0;
     }
-    for (p = prevp->data.next; prevp = p, p = p->data.next) {
+    for (p = prevp->data.next; prevp = p; p = p->data.next) {
         //Found a match
         if (p->data.size >= numOunits) {
             //Found an exact match
@@ -89,7 +89,7 @@ static Header *morebytes(unsigned numOunits){
         return NULL;
     }
     up = (Header*) cp;
-    up -> data.size; = numOunits;
+    up -> data.size = numOunits;
     free((void*)(up+1));
     return free_lst;
 }

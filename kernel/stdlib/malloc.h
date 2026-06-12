@@ -1,7 +1,5 @@
 #include "../memoryMan/memory.h"
 
-
-
 //most restrictive possible align type
 typedef long align_tight;
 
