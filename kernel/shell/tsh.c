@@ -12,6 +12,7 @@ static char cmd_history[HISTORY_MAX][KB_BUF_SIZE];
 static char buf[KB_BUF_SIZE];
 static int buf_index = 0;
 static int prev_command_index = 0;
+#pragma region shell loop
 void init_shell() {
     // char buf[KBUF_SIZE];
     print_banner();
@@ -101,7 +102,9 @@ void shell_clear() {
     terminal_clear();
     print_prompt();
 }
+#pragma endregion shel loop
 
+#pragma region history
 void update_history(char *line) {
     if(!line[0]) return;
     strcpy(cmd_history[(history_count++)%HISTORY_MAX], line);
@@ -141,7 +144,9 @@ void get_next_cmd() {
 
     buf_index = strlen(buf);
 }
+#pragma endregion history
 
+#pragma region commands
 void cmd_help(int argc, char **argv) {
     if (argc < 2) {
         putstr("No command given, printing all commands\n\n");
@@ -178,6 +183,16 @@ void cmd_lsh(int argc, char **argv) {
     }
 }
 
+void cmd_memstat(int argc, char **argv) {
+    putstr("[MEMORY STATUS]\n");
+    heap_t* k_heap = k_heap_status();
+    if(!k_heap) {
+        putstr("The heap does not yet exist or is not working\n");
+    } else {
+        printf("BASE: %p\nMAX: %p\n", k_heap->curr, k_heap->max);
+    }
+}
+
 /*
 Once the OS becomes more advanced, this will be phased
 out for a function that prunes everything while also saving state.
@@ -187,6 +202,9 @@ void cmd_exit(int argc, char **argv) {
     asm volatile("cli; hlt");
 }
 
+#pragma endregion commands
+
+#pragma region misc
 void print_banner(void) {
     terminal_set_color(vga_entry_color(VGA_LIGHT_BROWN, VGA_BLACK));
     putstr("=================================================================\n");
@@ -202,3 +220,17 @@ void print_prompt(void) {
     putstr("> ");
     terminal_set_color(vga_entry_color(VGA_LIGHT_GREY, VGA_BLACK));
 }
+
+void test_malloc_basic(int argc, char **argv){
+    void *a = malloc(16);
+    void *b = malloc(32);
+    void *c = malloc(8);
+
+    printf("a=%x b=%x c=%x\n", (uint32_t)a, (uint32_t)b, (uint32_t)c);
+
+    // Should be non-null, non-overlapping, reasonably aligned
+    if(!a || !b || !c){
+        putstr("FAIL: null pointer returned\n");
+    }
+}
+#pragma endregion misc

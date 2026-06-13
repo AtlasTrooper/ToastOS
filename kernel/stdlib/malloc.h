@@ -1,3 +1,4 @@
+#pragma once
 #include "../memoryMan/memory.h"
 
 //most restrictive possible align type

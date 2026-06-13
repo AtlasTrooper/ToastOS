@@ -20,11 +20,11 @@ void * malloc(int numObytes){
     numOunits = (numObytes + sizeof(Header)-1)/sizeof(Header)+1;
     
     //No free list, must create empty one pointing to itself
-    if ((prevp == free_lst) == NULL) {
+    if ((prevp = free_lst) == NULL) {
         base.data.next = free_lst = prevp = &base;
         base.data.size = 0;
     }
-    for (p = prevp->data.next; prevp = p; p = p->data.next) {
+    for (p = prevp->data.next; ; prevp = p, p = p->data.next) {
         //Found a match
         if (p->data.size >= numOunits) {
             //Found an exact match
@@ -39,9 +39,9 @@ void * malloc(int numObytes){
             return (void *)(p+1);
         }
         if (p == free_lst) {
-                if ((p = morebytes(numOunits)) == NULL) {
-                    return NULL;
-                }
+            if ((p = morebytes(numOunits)) == NULL) {
+                return NULL;
+            }
         }
     }
 

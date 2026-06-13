@@ -6,13 +6,8 @@
 int tick_count = 0;
 int channel_0_hz = 100;
 
-void timer_handler(system_state* sys){
-    
+void timer_handler(system_state* sys){    
     tick_count ++;
-    // if(tick_count %channel_0_hz ==0){
-    //     putstr("One mississippi\n");
-    // } 
-   
 }
 void timer_wait_t(int ticks){
     unsigned long future_ticks;

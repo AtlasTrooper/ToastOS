@@ -6,6 +6,7 @@
 #include "../kb.h"
 #include "../timer.h"
 #include "../memoryMan/memory.h"
+#include "../stdlib/malloc.h"
 
 //Base shell functions
 
@@ -26,6 +27,8 @@ void cmd_echo(int argc, char **argv);
 void cmd_darud(int argc, char **argv);
 void cmd_lsh(int argc, char **argv);
 void cmd_exit(int argc, char **argv);
+void cmd_memstat(int argc, char **argv);
+void test_malloc_basic(int argc, char **argv);
 
 //decor(totally necessary)
 void print_banner();
@@ -46,5 +49,8 @@ static const command_t commands[] = {
     {"echo", cmd_echo, "Prints the line following the command word" },
     {"darud", cmd_darud, "Da rude sandstorm"},
     {"lsh", cmd_lsh, "Prints the the (at most 8) most recent commands the user has used"},
+    {"memst", cmd_memstat, "Prints information on the kernel_heap"},
+    {"tst", test_malloc_basic, "test"},
     {"exit", cmd_exit, "Gracefully shuts down and exits the os"}
+
 };

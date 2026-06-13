@@ -3,6 +3,17 @@
 #define PAGE_SIZE 4096
 #define ALIGN 4096
 
+static uintptr_t v_addr_s = (uintptr_t) &_kernel_v_start;
+static uintptr_t v_addr_e = (uintptr_t) &_kernel_v_end;
+static uintptr_t p_addr_s = (uintptr_t) &_kernel_p_start;
+static uintptr_t p_addr_e = (uintptr_t) &_kernel_p_end;
+
+static uint32_t* pd_v_addr = (uint32_t*)(0xFFFFF000);
+
+static uintptr_t p_alloc_s;
+
+static heap_t k_heap;
+
 void *memset(void *dest, int val, unsigned int iter){
     unsigned char* ptr =dest;
     while(iter--){
@@ -11,19 +22,7 @@ void *memset(void *dest, int val, unsigned int iter){
     return dest;
 }
 
-static uintptr_t v_addr_s = (uintptr_t) &_kernel_v_start;
-static uintptr_t v_addr_e = (uintptr_t) &_kernel_v_end;
-static uintptr_t p_addr_s = (uintptr_t) &_kernel_p_start;
-static uintptr_t p_addr_e = (uintptr_t) &_kernel_p_end;
-
-static uint32_t* pd_v_addr = (uint32_t*)(0xFFFFF000);
-static uintptr_t p_alloc_s;
-static uintptr_t k_heap_curr = 0;
-static uintptr_t k_heap_max = 0;
-
 void initPmm(multiboot_info* boot_data){
-    
-
     multiboot_info *mboot = (multiboot_info *)((uintptr_t)boot_data + KERNEL_START);
     max_frames = (mboot->mem_upper + 1024)/4; //in 4KB
     uint32_t chunk_count = max_frames/32; //uint32 contains 32 4kb frame trackers
@@ -53,8 +52,8 @@ void initPmm(multiboot_info* boot_data){
 
     reload_CR3(p_pd_addr);
     
-    //initialize the heap
-    init_Kheap(p_alloc_s);
+    //initialize the kernel heap at the first higher half allocatable and page aligned addr
+    init_Kheap(p_alloc_s + KERNEL_START);
 }
 
 uint32_t alloc_frame(){
@@ -124,7 +123,7 @@ void unmap_page(uint32_t v_addr) {
     }
     uint32_t p_addr = pt_v_addr[pt_index] & ~(0xFFF);
     free_frame(p_addr);
-    pd_v_addr[pt_index] = 0;
+    pt_v_addr[pt_index] = 0;
     invalidate_page((uint32_t)v_addr);    
 }
 
@@ -138,14 +137,24 @@ void reload_CR3(uint32_t p_pd_addr){
     ); //reload CR3
 }
 
+heap_t* k_heap_status() {
+    if (k_heap.is_init == 0) {
+        return NULL;
+    }
+
+    return &k_heap;
+}
+
 void init_Kheap(uintptr_t heap_s) {
-    k_heap_curr = heap_s;
-    k_heap_max = CEIL(heap_s, PAGE_SIZE);
+    k_heap.s = heap_s;
+    k_heap.curr = heap_s;
+    k_heap.max = CEIL(heap_s, PAGE_SIZE);
+    k_heap.is_init = 1;
 }
 
 void *heapafus(int32_t inc) {
-    uintptr_t old_curr = k_heap_curr;
-    uintptr_t new_curr = k_heap_curr + inc;
+    uintptr_t old_curr = k_heap.curr;
+    uintptr_t new_curr = k_heap.curr + inc;
 
     /*
     Nechalek lemikrim:
@@ -155,35 +164,36 @@ void *heapafus(int32_t inc) {
     */
     if(inc < 0) {
 
-        if(new_curr < k_heap_curr - inc && new_curr > old_curr){
+        if(new_curr < k_heap.curr - inc && new_curr > old_curr){
             // underflow / invalid shrink past start
             return (void*)-1;
         }
 
         uintptr_t new_max = CEIL(new_curr, PAGE_SIZE);
 
-        for (uintptr_t addr = new_max; addr < k_heap_max; addr += PAGE_SIZE) {
+        for (uintptr_t addr = new_max; addr < k_heap.max; addr += PAGE_SIZE) {
             unmap_page(addr);
         }
         
-        k_heap_curr = new_curr;
-        k_heap_max = new_max;
+        k_heap.curr = new_curr;
+        k_heap.max = new_max;
         return (void*)new_curr;
     }
 
-    while (k_heap_max < new_curr) {
+    while (k_heap.max < new_curr) {
         uint32_t new_frame = alloc_frame();
         if (new_frame == 0) {
             debug_print("[OUT OF MEM!]\n");
             return (void*)-1;
             
         }
-        map_page(k_heap_max, new_frame, 0x3);
-        k_heap_max += PAGE_SIZE;
+        map_page(k_heap.max, new_frame, 0x3);
+        k_heap.max += PAGE_SIZE;
     }
 
-    k_heap_curr = new_curr;
+    k_heap.curr = new_curr;
     return (void *)old_curr;
     
 
 }
+
