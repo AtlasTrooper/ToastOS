@@ -153,7 +153,9 @@ void cmd_help(int argc, char **argv) {
         putstr("                 CMD LIST                   ");
         putstr("\n---------------------------------------\n");
         for (int i = 0; i < sizeof(commands)/sizeof(command_t); i++) {
-            printf("%s : %s \n", commands[i].name, commands[i].help_msg);
+            if (strlen(commands[i].help_msg) > 1) {
+                printf("%s : %s \n", commands[i].name, commands[i].help_msg);
+            }
         }
         putstr("---------------------------------------\n");
     } else {

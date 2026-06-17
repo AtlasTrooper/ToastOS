@@ -47,7 +47,7 @@ typedef struct command_t {
 static const command_t commands[] = {
     {"help", cmd_help, "Explains the operations of different commands"},
     {"echo", cmd_echo, "Prints the line following the command word" },
-    {"darud", cmd_darud, "Da rude sandstorm"},
+    {"darud", cmd_darud, ""},
     {"lsh", cmd_lsh, "Prints the the (at most 8) most recent commands the user has used"},
     {"memst", cmd_memstat, "Prints information on the kernel_heap"},
     {"tst", test_malloc_basic, "test"},
