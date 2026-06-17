@@ -64,6 +64,10 @@ Tested in the Bochs debugger, which confirmed correct page table configuration a
 
 Note: a bitmap isn't the most efficient approach, but the goal was to understand how page frame allocation and recursive mapping work before attempting something more complex. A different algorithm (such as the buddy system) may be worth revisiting later.
 
+#### Working Kernel Heap!
+
+Today (June 12, 2026) I ran the first successful dynamic memory allocation test!
+
 #### Next Up: PDT Sync
 
 With physical frame allocation in place, the next step is implementing **page directory table (PDT) synchronization**, to keep page directories consistent across contexts. This lays the groundwork for supporting userspace page tables down the line.

@@ -48,6 +48,12 @@ void * malloc(int numObytes){
 }
 
 // frees up memory and returns to free list
+
+/*
+TODO:
+
+free and unmap page frames when possible!
+*/
 void free(void *ptr) {
     Header *block, *scan;
     block = (Header *)ptr - 1;
@@ -78,13 +84,14 @@ void free(void *ptr) {
 
 //Asks the OS for more memory, leverages the PFA
 static Header *morebytes(unsigned numOunits){
+    heap_t* k_heap = k_heap_status();
     char *cp;
     Header *up;
 
     if(numOunits < MIN_ALLOC) {
         numOunits = MIN_ALLOC;
     }
-    cp = heapafus(numOunits * sizeof(Header));
+    cp = heapafus(numOunits * sizeof(Header), k_heap);
     if (cp == (char*)-1) {
         return NULL;
     }

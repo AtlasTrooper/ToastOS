@@ -184,13 +184,15 @@ void cmd_lsh(int argc, char **argv) {
 }
 
 void cmd_memstat(int argc, char **argv) {
-    putstr("[MEMORY STATUS]\n");
+    putstr("[MEMORY STATUS]\n\n");
     heap_t* k_heap = k_heap_status();
     if(!k_heap) {
         putstr("The heap does not yet exist or is not working\n");
     } else {
-        printf("BASE: %p\nMAX: %p\n", k_heap->curr, k_heap->max);
+        printf("HEAP BASE: %p\nHEAP MAX: %p\n\n", k_heap->s, k_heap->max);
     }
+
+    printf("TOTAL SIZE OF KERNEL_HEAP: %u bytes\n", (uint32_t)(k_heap->max-k_heap->s));
 }
 
 /*
@@ -222,15 +224,56 @@ void print_prompt(void) {
 }
 
 void test_malloc_basic(int argc, char **argv){
+    heap_t *h = k_heap_status();
+    if(h == NULL){
+        putstr("FAIL: heap not initialized\n");
+        return;
+    }
+
+    uint32_t size_before = h->max - h->s;
+    printf("heap size before: %x\n", size_before);
+
     void *a = malloc(16);
+
+    uint32_t size_after_a = h->max - h->s;
+    printf("heap size after a: %x\n", size_after_a);
+
+    // morebytes rounds up to MIN_ALLOC units, which heapafus rounds up
+    // to whole pages -- first malloc should grow the heap.
+    if(size_after_a <= size_before){
+        putstr("FAIL: heap did not grow on first malloc\n");
+    }
+    if(size_after_a % 4096 != 0){
+        putstr("FAIL: heap size not page-aligned\n");
+    }
+
     void *b = malloc(32);
     void *c = malloc(8);
 
+    uint32_t size_after_bc = h->max - h->s;
+    printf("heap size after b,c: %x\n", size_after_bc);
+
+    // b and c should fit in the leftover free block from morebytes'
+    // MIN_ALLOC, so no additional growth should occur.
+    if(size_after_bc != size_after_a){
+        putstr("FAIL: heap grew unexpectedly for small allocations\n");
+    }
+
     printf("a=%x b=%x c=%x\n", (uint32_t)a, (uint32_t)b, (uint32_t)c);
 
-    // Should be non-null, non-overlapping, reasonably aligned
     if(!a || !b || !c){
         putstr("FAIL: null pointer returned\n");
+        return;
     }
+
+    // sanity: non-overlapping (each is at least its requested size apart)
+    if((uint32_t)b < (uint32_t)a + 16 && (uint32_t)a < (uint32_t)b + 32){
+        putstr("FAIL: a and b overlap\n");
+    }
+    if((uint32_t)c < (uint32_t)b + 32 && (uint32_t)b < (uint32_t)c + 8){
+        putstr("FAIL: b and c overlap\n");
+    }
+
+    putstr("PASS: test_malloc_basic\n");
 }
 #pragma endregion misc

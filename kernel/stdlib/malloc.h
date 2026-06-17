@@ -1,6 +1,6 @@
 #pragma once
 #include "../memoryMan/memory.h"
-
+#include "../memoryMan/heap.h"
 //most restrictive possible align type
 typedef long align_tight;
 

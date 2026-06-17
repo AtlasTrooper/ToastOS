@@ -10,8 +10,6 @@
 #define L_CTRL 0x1D
 #define REL_CTRL_L 0x9D
 
-
-
 #define L_SHIFT 0x2A
 #define R_SHIFT 0x36
 
@@ -44,7 +42,6 @@ typedef enum SCANSET{
 void kb_enqueue(char c);
 int kb_haschar();
 char kb_getchar();
-
 
 void kb_handler(system_state *sys);
 void kb_init();

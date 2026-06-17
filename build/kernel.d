@@ -4,8 +4,10 @@ build/kernel.o: kernel/kernel.c kernel/qol.h kernel/stdlib/string.h \
  kernel/gdt/../memoryMan/../stdlib/stdio.h \
  kernel/gdt/../memoryMan/../serial.h kernel/gdt/../memoryMan/../io.h \
  kernel/interrupts/idt.h kernel/timer.h kernel/kb.h kernel/stdlib/stdio.h \
- kernel/stdlib/malloc.h kernel/shell/tsh.h kernel/shell/../serial.h \
- kernel/shell/../io.h kernel/shell/../io.h kernel/shell/../timer.h
+ kernel/stdlib/malloc.h kernel/stdlib/../memoryMan/heap.h \
+ kernel/stdlib/../memoryMan/pmm.h kernel/stdlib/../memoryMan/vmm.h \
+ kernel/shell/tsh.h kernel/shell/../serial.h kernel/shell/../io.h \
+ kernel/shell/../io.h kernel/shell/../timer.h
 kernel/qol.h:
 kernel/stdlib/string.h:
 kernel/vga.h:
@@ -22,6 +24,9 @@ kernel/timer.h:
 kernel/kb.h:
 kernel/stdlib/stdio.h:
 kernel/stdlib/malloc.h:
+kernel/stdlib/../memoryMan/heap.h:
+kernel/stdlib/../memoryMan/pmm.h:
+kernel/stdlib/../memoryMan/vmm.h:
 kernel/shell/tsh.h:
 kernel/shell/../serial.h:
 kernel/shell/../io.h:

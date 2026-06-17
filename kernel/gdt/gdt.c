@@ -27,15 +27,10 @@ void initGDT(){
 
     encode_tss_seg(5, 0x10, 0x00);
 
-    //debug_print("entries encoded");
-
     load_gdt((uint32_t)&gdt);
-    //debug_print("GDT LOADED");
     flush();
-    //debug_print("Flushed");
     load_tss();
     
-    //debug_print("post asm functions");
     debug_print("GDT IS UP AND RUNNING");
     
 }
