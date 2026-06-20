@@ -42,10 +42,12 @@ ISO        = $(BUILD)/toast.iso
 C_SRCS    := $(shell find kernel -type f -name '*.c' | LC_ALL=C sort)
 ASM_SRCS  := $(shell find kernel -type f -name '*.S' | LC_ALL=C sort)
 NASM_SRCS := $(shell find kernel -type f -name '*.asm' | LC_ALL=C sort)
+PSF_SRCS  := $(shell find kernel -type f -name '*.psf' | LC_ALL=C sort)
 
-OBJS := $(patsubst kernel/%.c,   $(BUILD)/%.c.o,   $(C_SRCS)) \
+OBJS := $(patsubst kernel/%.c,   $(BUILD)/%.c.o,   $(C_SRCS))   \
         $(patsubst kernel/%.S,   $(BUILD)/%.S.o,   $(ASM_SRCS)) \
-        $(patsubst kernel/%.asm, $(BUILD)/%.asm.o, $(NASM_SRCS))
+        $(patsubst kernel/%.asm, $(BUILD)/%.asm.o, $(NASM_SRCS)) \
+        $(patsubst kernel/%.psf, $(BUILD)/%.psf.o, $(PSF_SRCS))
 
 DEPS := $(OBJS:.o=.d)
 
@@ -75,6 +77,13 @@ $(BUILD)/%.S.o: kernel/%.S GNUmakefile
 $(BUILD)/%.asm.o: kernel/%.asm GNUmakefile
 	mkdir -p $(dir $@)
 	$(NASM) $(NASMFLAGS) $< -o $@
+
+# ========================
+# PC Screen fonts (.psf)
+# ========================
+$(BUILD)/%.psf.o: kernel/%.psf GNUmakefile
+	mkdir -p $(dir $@)
+	objcopy -O elf64-x86-64 -B i386 -I binary $< $@
 
 # ========================
 # Link kernel

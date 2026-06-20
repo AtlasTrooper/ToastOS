@@ -3,7 +3,7 @@
 static Framebuffer fb;
 
 void fb_init(struct limine_framebuffer *limine_fb) {
-    fb.addr = (uint32_t*)limine_fb->addr;
+    fb.addr = (uint32_t*)limine_fb->address;
     fb.width = (uint32_t)limine_fb->width;
     fb.height = (uint32_t)limine_fb->height;
     fb.pitch = (uint32_t)limine_fb->pitch;

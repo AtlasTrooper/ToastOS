@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#define PSF2_FONT_MAGIC 0x864ab572
+#define PSF2_MAGIC 0x864ab572
 
 typedef struct {
     uint32_t magic;         /* magic bytes to identify PSF */
@@ -14,4 +14,11 @@ typedef struct {
     uint32_t width;         /* width in pixels */
 } PSF2_Header;
 
+/*
+will implement later when 64 bit migration
+is complete and we have dynamic memory allocation back.
+*/
 void psf_init();
+uint32_t font_height(void);
+uint32_t font_width(void);
+void font_draw_char(char c, uint32_t px, uint32_t py, uint32_t fg, uint32_t bg);
