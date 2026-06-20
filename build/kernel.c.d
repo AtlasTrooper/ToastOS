@@ -1,2 +1,3 @@
-build/kernel.c.o: kernel/kernel.c kernel/limine.h
+build/kernel.c.o: kernel/kernel.c kernel/mmu/memory.h kernel/limine.h
+kernel/mmu/memory.h:
 kernel/limine.h:

@@ -1,3 +1,5 @@
+#include "memory.h"
+
 // GCC may generate calls to these even in freestanding mode — must exist
 void *memcpy(void *dest, const void *src, size_t n) {
     uint8_t *d = dest; const uint8_t *s = src;
