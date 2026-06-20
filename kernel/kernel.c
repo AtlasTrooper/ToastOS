@@ -29,7 +29,7 @@ void _start(void) {
     const char *msg = "ToastOS x86_64 - Framebuffer OK!";
     uint32_t x = 16;
     for (int i = 0; msg[i] != '\0'; i++) {
-        font_draw_char(msg[i], x, 16, COLOR_GREEN, COLOR_BLACK);
+        font_draw_char(msg[i], x, 16, COLOR_WHITE, COLOR_BLACK);
         x += font_width();
     }
 
