@@ -34,7 +34,7 @@ typedef struct PACKED gdtEntry{
     uint8_t  base_high;   
 }gdtEntry;
 
-typedef struct PACKED {
+typedef struct PACKED tssEntry {
     uint16_t limit_low;
     uint16_t base_low;
     uint8_t  base_mid;
@@ -62,8 +62,8 @@ typedef struct PACKED TSS{
 
 
 void initGDT();
-void encode_gdt_seg(uint32_t index, uint32_t base, uint32_t lim, uint8_t access, uint8_t gran);
-void encode_tss_seg(uint32_t index, uint32_t ss0, uint32_t esp0);
+void encode_gdt_seg(int index, uint8_t access, uint8_t gran);
+void encode_tss_seg(uint64_t base);
 
 extern void load_gdt(uint32_t addr);
 extern void flush();
