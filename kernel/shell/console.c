@@ -1,4 +1,4 @@
-#include "tsh.h"
+#include "console.h"
 #include "../framebuffer.h"
 #include "../font.h"
 

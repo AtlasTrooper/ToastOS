@@ -4,7 +4,7 @@
 #include "limine.h"
 #include "framebuffer.h"
 #include "font.h"
-#include "shell/tsh.h"
+#include "shell/console.h"
 #include "stdlib/stdio.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {

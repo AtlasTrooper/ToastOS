@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "../shell/tsh.h"
+#include "../shell/console.h"
 
 static const char possibleChars[] = "0123456789abcdef";
 
