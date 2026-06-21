@@ -6,6 +6,9 @@
 #include "font.h"
 #include "shell/console.h"
 #include "stdlib/stdio.h"
+#include "stdlib/string.h"
+#include "io.h"
+#include "serial.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -38,6 +41,7 @@ void _start(void) {
     putstr("tsh> ");
     console_set_color(CON_LIGHT_GREY, CON_BLACK);
 
+    debug_print("\n[Hello from the 64 bit serial port!]\n");
 
     hcf();
 }

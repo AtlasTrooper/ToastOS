@@ -2,10 +2,10 @@
 .global inb
 
 # outb(uint16_t port, uint8_t data)
-# port -> di, data -> si
+# port -> di, data -> sil
 outb:
     mov %di, %dx
-    mov %si, %al
+    mov %sil, %al
     out %al, %dx
     ret
 

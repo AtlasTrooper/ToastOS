@@ -1,3 +1,4 @@
+#pragma once
 #include "io.h"
 
 //we use io to access/send serial data

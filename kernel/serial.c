@@ -1,6 +1,7 @@
 #include "io.h"
 #include "serial.h"
 #include "stdlib/stdio.h"
+#include "stdlib/string.h"
 
 void serial_config_brate(unsigned short com, unsigned short div){
 
@@ -54,7 +55,7 @@ char serial_read(unsigned int com){
 }
 
 void serial_write(unsigned int com, char* a){
-    int i = 0;
+    size_t i = 0;
     while(i < strlen(a)){
         while(serial_is_transmit_empty(com) == 0);
         outb(com, a[i]);
