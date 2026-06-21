@@ -4,6 +4,8 @@
 #include "limine.h"
 #include "framebuffer.h"
 #include "font.h"
+#include "shell/tsh.h"
+#include "stdlib/stdio.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -24,14 +26,17 @@ void _start(void) {
      framebuffer_request.response->framebuffers[0];
 
     fb_init(fb);
-    fb_clear(COLOR_BLACK);
+    console_init();
+    console_set_color(CON_WHITE, CON_BLACK);
 
-    const char *msg = "ToastOS x86_64 - Framebuffer OK!";
-    uint32_t x = 16;
-    for (int i = 0; msg[i] != '\0'; i++) {
-        font_draw_char(msg[i], x, 16, COLOR_WHITE, COLOR_BLACK);
-        x += font_width();
-    }
+    printf("ToastOS x86_64 - framebuffer console OK\n");
+    printf("cols: %d  rows: %d\n",
+           fb_get()->width  / font_width(),
+           fb_get()->height / font_height());
+ 
+    console_set_color(CON_LIGHT_GREEN, CON_BLACK);
+    putstr("tsh> ");
+    console_set_color(CON_LIGHT_GREY, CON_BLACK);
 
 
     hcf();
