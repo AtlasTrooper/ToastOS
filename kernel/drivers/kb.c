@@ -55,8 +55,8 @@ void kb_handler(system_state *sys) {
     if (extended) {
         extended = 0;
         switch (scancode) {
-            case UP_ARROW:   get_prev_cmd(); break;
-            case DOWN_ARROW: get_next_cmd(); break;
+            // case UP_ARROW:   get_prev_cmd(); break;
+            // case DOWN_ARROW: get_next_cmd(); break;
             default: break;
         }
         return;

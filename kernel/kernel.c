@@ -50,6 +50,8 @@ void _start(void) {
     initGDT();
     initIDT();
     printf("GDT and IDT loaded\n");
+    init_timer();
+    kb_init();
 
     hcf();
 }
