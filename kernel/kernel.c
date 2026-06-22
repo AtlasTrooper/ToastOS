@@ -45,7 +45,8 @@ void _start(void) {
     debug_print("\n[Hello from the 64 bit serial port!]\n");
 
     initGDT();
-    printf("GDT loaded\n");
+    initIDT();
+    printf("GDT and IDT loaded\n");
 
     hcf();
 }
