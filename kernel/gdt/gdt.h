@@ -45,12 +45,12 @@ typedef struct PACKED tssEntry {
     uint32_t reserved;
 }tssEntry;
 
-typedef struct PACKED GDT{
+typedef struct PACKED GDT_descriptor{
     uint16_t lim;
-    unsigned int base;
-}GDT;
+    uint64_t base;
+}GDT_descriptor;
 
-typedef struct PACKED TSS{
+typedef struct PACKED TSS_descriptor{
     uint32_t reserved0;
     uint64_t rsp[3];
     uint64_t reserved1;
@@ -58,14 +58,14 @@ typedef struct PACKED TSS{
     uint64_t reserved2;
     uint16_t reserved3;
     uint16_t iopb;
-}TSS;
+}TSS_descriptor;
 
 void initGDT(void);
 void load_tss(uint64_t rsp0);
 void encode_gdt_seg(int index, uint8_t access, uint8_t gran);
 void encode_tss_seg(uint64_t base);
 
-extern void gdt_flush(GDT *gdtr);
+extern void gdt_flush(GDT_descriptor *gdtr);
 extern void tss_flush(void);
 
 #endif

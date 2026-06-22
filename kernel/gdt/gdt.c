@@ -1,10 +1,12 @@
 #include "gdt.h"
+#include "../stdlib/stdio.h"
+static struct gdt_table{
+    gdtEntry entries[5];
+    tssEntry tss;
+}PACKED gdt_table;
 
-static gdtEntry gdt[5];
-static tssEntry tss_entry;
-
-static GDT gdtr;
-static TSS tss;
+static GDT_descriptor gdtr;
+static TSS_descriptor tss;
 
 void initGDT(void) {
     encode_gdt_seg(0, 0, 0);
@@ -41,8 +43,12 @@ void initGDT(void) {
 
     encode_tss_seg((uint64_t)&tss);
 
-    gdtr.lim = sizeof(gdt) + sizeof(tss_entry) - 1;
-    gdtr.base = (uint64_t)&gdt;
+    gdtr.lim = sizeof(gdt_table) - 1;
+    gdtr.base = (uint64_t)&gdt_table;
+
+    printf("gdt_table size: %d\n", (int)sizeof(gdt_table));
+    printf("gdtEntry size: %d\n", (int)sizeof(gdtEntry));
+    printf("tssEntry size: %d\n", (int)sizeof(tssEntry));
 
     gdt_flush(&gdtr);
     tss_flush();
@@ -53,22 +59,24 @@ void load_tss(uint64_t rsp0) {
 }
 
 void encode_gdt_seg(int index, uint8_t access, uint8_t gran) {
-    gdt[index].base_low = gdt[index].base_mid = gdt[index].base_high = 0;
-    gdt[index].lim = 0;
-    gdt[index].access = access;
-    gdt[index].granularity = gran;
+    gdt_table.entries[index].base_low = 0;
+    gdt_table.entries[index].base_mid = 0;
+    gdt_table.entries[index].base_high = 0;
+    gdt_table.entries[index].lim = 0;
+    gdt_table.entries[index].access = access;
+    gdt_table.entries[index].granularity = gran;
 }
 void encode_tss_seg(uint64_t base) {
-    uint32_t lim = sizeof(TSS)-1;
-    tss_entry.base_low = base & 0xFFFF;
-    tss_entry.limit_low = lim & 0xFFFF;
-    tss_entry.base_high = (base>>16) & 0xFF;
-    tss_entry.access = 0x89;
-    tss_entry.granularity = ((lim >> 16) & 0x0F);
-    tss_entry.base_high = (base >> 24) & 0xFF;
-    tss_entry.base_upper = (base >> 32) & 0xFFFFFFFF;
-    tss_entry.reserved = 0;
+    uint32_t lim = sizeof(TSS_descriptor)-1;
+    gdt_table.tss.base_low = base & 0xFFFF;
+    gdt_table.tss.limit_low = lim & 0xFFFF;
+    gdt_table.tss.base_mid = (base>>16) & 0xFF;
+    gdt_table.tss.access = 0x89;
+    gdt_table.tss.granularity = ((lim >> 16) & 0x0F);
+    gdt_table.tss.base_high = (base >> 24) & 0xFF;
+    gdt_table.tss.base_upper = (base >> 32) & 0xFFFFFFFF;
+    gdt_table.tss.reserved = 0;
 }
 
-extern void gdt_flush(GDT *gdtr);
+extern void gdt_flush(GDT_descriptor *gdtr);
 extern void tss_flush(void);

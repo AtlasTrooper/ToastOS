@@ -9,6 +9,7 @@
 #include "stdlib/string.h"
 #include "io.h"
 #include "serial.h"
+#include "gdt/gdt.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -42,6 +43,9 @@ void _start(void) {
     console_set_color(CON_LIGHT_GREY, CON_BLACK);
 
     debug_print("\n[Hello from the 64 bit serial port!]\n");
+
+    initGDT();
+    printf("GDT loaded\n");
 
     hcf();
 }
