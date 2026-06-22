@@ -10,6 +10,7 @@
 #include "io.h"
 #include "serial.h"
 #include "gdt/gdt.h"
+#include "idt/idt.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,

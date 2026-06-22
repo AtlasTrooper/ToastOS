@@ -24,7 +24,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7f2de4bdd010. after alignment, vector=0x7f2de4bde000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7f3fea9dd010. after alignment, vector=0x7f3fea9de000, block_size = 128K
 00000000000i[MEM0  ] 256.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=2048
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -36,7 +36,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Mon Jun 22 13:23:44   2026 tz=utc (time0=1782134624)
+00000000000i[CMOS  ] Setting initial clock to: Mon Jun 22 14:14:29   2026 tz=utc (time0=1782137669)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -71,7 +71,7 @@
 00000000000i[CD1   ] load cdrom with path='build/toast.iso'
 00000000000i[CD1   ] Opening image file as a cd.
 00000000000i[HD    ] Media present in CD-ROM drive
-00000000000i[HD    ] Capacity is 1288 sectors (2.52 MB)
+00000000000i[HD    ] Capacity is 1312 sectors (2.56 MB)
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
 00000000000i[DEV   ] PIIX3 PCI IDE controller present at device 1, function 1
 00000000000i[PLUGIN] init_dev of 'unmapped' plugin device by virtual method
@@ -188,164 +188,195 @@
 00000000000i[PLUGIN] reset of 'iodebug' plugin device by virtual method
 00000000000i[PLUGIN] reset of 'usb_uhci' plugin device by virtual method
 00000001740i[BIOS  ] BIOS BUILD DATE: 02/16/25
-00000330805i[KBD   ] reset-disable command received
-00000336057i[BIOS  ] Starting rombios32
-00000336495i[BIOS  ] Shutdown flag 0
-00000337103i[BIOS  ] ram_size=0x10000000
-00000337558i[BIOS  ] ram_end=256MB
-00000487122i[BIOS  ] Found 1 cpu(s)
-00000501080i[BIOS  ] bios_table_addr: 0x000fa168 end=0x000fcc00
-00000828896i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
-00001156831i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
-00001156855i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
-00001156879i[P2ISA ] PCI IRQ routing: PIRQC# set to 0x0b
-00001156903i[P2ISA ] PCI IRQ routing: PIRQD# set to 0x09
-00001156913i[P2ISA ] write: ELCR2 = 0x0a
-00001157682i[BIOS  ] PIIX3/PIIX4 init: elcr=00 0a
-00001171358i[BIOS  ] PCI: bus=0 devfn=0x00: vendor_id=0x8086 device_id=0x1237 class=0x0600
-00001173702i[BIOS  ] PCI: bus=0 devfn=0x08: vendor_id=0x8086 device_id=0x7000 class=0x0601
-00001175885i[BIOS  ] PCI: bus=0 devfn=0x09: vendor_id=0x8086 device_id=0x7010 class=0x0101
-00001176120i[PIDE  ] BAR #4: i/o base address = 0xc000
-00001176736i[BIOS  ] region 4: 0x0000c000
-00001178771i[BIOS  ] PCI: bus=0 devfn=0x0a: vendor_id=0x8086 device_id=0x7020 class=0x0c03
-00001178984i[UHCI  ] BAR #4: i/o base address = 0xc020
-00001179600i[BIOS  ] region 4: 0x0000c020
-00001179728i[UHCI  ] new IRQ line = 9
-00001181650i[BIOS  ] PCI: bus=0 devfn=0x0b: vendor_id=0x8086 device_id=0x7113 class=0x0680
-00001181926i[ACPI  ] new IRQ line = 11
-00001181940i[ACPI  ] new IRQ line = 9
-00001181968i[ACPI  ] new PM base address: 0xb000
-00001181982i[ACPI  ] new SM base address: 0xb100
-00001182010i[PCI   ] setting SMRAM control register to 0x4a
-00001346145i[CPU0  ] Enter to System Management Mode
-00001346155i[CPU0  ] RSM: Resuming from System Management Mode
-00001510211i[PCI   ] setting SMRAM control register to 0x0a
-00001536874i[BIOS  ] MP table addr=0x000fa240 MPC table addr=0x000fa170 size=0xc8
-00001538581i[BIOS  ] SMBIOS table addr=0x000fa250
-00001540670i[BIOS  ] ACPI tables: RSDP addr=0x000fa370 ACPI DATA addr=0x0fff0000 size=0xff8
-00001543655i[BIOS  ] Firmware waking vector 0xfff00cc
-00001545909i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
-00001546639i[BIOS  ] bios_table_cur_addr: 0x000fa394
-00001646592i[VBIOS ] VGABios ID: vgabios.c 2025-01-08
-00001646671i[BXVGA ] VBE known Display Interface b0c0
-00001646711i[BXVGA ] VBE known Display Interface b0c5
-00001648132i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
-00005335897i[BIOS  ] IDE time out
-00052157566i[BIOS  ] Booting from 07c0:0000
-00057577721i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=80
-00057581460i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=81
-00057585199i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=82
-00057588938i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=83
-00057592677i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=84
-00057596416i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=85
-00057600155i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=86
-00057603894i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=87
-00057607246i[BIOS  ] int13_harddisk: function 48, ELDL out of range 88
-00057610598i[BIOS  ] int13_harddisk: function 48, ELDL out of range 89
-00057613951i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8a
-00057617304i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8b
-00057620657i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8c
-00057624010i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8d
-00057627363i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8e
-00057630716i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8f
-00057634068i[BIOS  ] int13_harddisk: function 48, ELDL out of range 90
-00057637420i[BIOS  ] int13_harddisk: function 48, ELDL out of range 91
-00057640772i[BIOS  ] int13_harddisk: function 48, ELDL out of range 92
-00057644124i[BIOS  ] int13_harddisk: function 48, ELDL out of range 93
-00057647476i[BIOS  ] int13_harddisk: function 48, ELDL out of range 94
-00057650828i[BIOS  ] int13_harddisk: function 48, ELDL out of range 95
-00057654180i[BIOS  ] int13_harddisk: function 48, ELDL out of range 96
-00057657532i[BIOS  ] int13_harddisk: function 48, ELDL out of range 97
-00057660884i[BIOS  ] int13_harddisk: function 48, ELDL out of range 98
-00057664236i[BIOS  ] int13_harddisk: function 48, ELDL out of range 99
-00057667589i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9a
-00057670942i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9b
-00057674318i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9c
-00057677671i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9d
-00057681024i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9e
-00057684377i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9f
-00057687730i[BIOS  ] int13_harddisk: function 48, ELDL out of range a0
-00057691083i[BIOS  ] int13_harddisk: function 48, ELDL out of range a1
-00057694436i[BIOS  ] int13_harddisk: function 48, ELDL out of range a2
-00057697789i[BIOS  ] int13_harddisk: function 48, ELDL out of range a3
-00057701142i[BIOS  ] int13_harddisk: function 48, ELDL out of range a4
-00057704495i[BIOS  ] int13_harddisk: function 48, ELDL out of range a5
-00057707848i[BIOS  ] int13_harddisk: function 48, ELDL out of range a6
-00057711201i[BIOS  ] int13_harddisk: function 48, ELDL out of range a7
-00057714554i[BIOS  ] int13_harddisk: function 48, ELDL out of range a8
-00057717907i[BIOS  ] int13_harddisk: function 48, ELDL out of range a9
-00057721261i[BIOS  ] int13_harddisk: function 48, ELDL out of range aa
-00057724615i[BIOS  ] int13_harddisk: function 48, ELDL out of range ab
-00057727969i[BIOS  ] int13_harddisk: function 48, ELDL out of range ac
-00057731323i[BIOS  ] int13_harddisk: function 48, ELDL out of range ad
-00057734677i[BIOS  ] int13_harddisk: function 48, ELDL out of range ae
-00057738031i[BIOS  ] int13_harddisk: function 48, ELDL out of range af
-00057741384i[BIOS  ] int13_harddisk: function 48, ELDL out of range b0
-00057744737i[BIOS  ] int13_harddisk: function 48, ELDL out of range b1
-00057748090i[BIOS  ] int13_harddisk: function 48, ELDL out of range b2
-00057751443i[BIOS  ] int13_harddisk: function 48, ELDL out of range b3
-00057754796i[BIOS  ] int13_harddisk: function 48, ELDL out of range b4
-00057758149i[BIOS  ] int13_harddisk: function 48, ELDL out of range b5
-00057761502i[BIOS  ] int13_harddisk: function 48, ELDL out of range b6
-00057764855i[BIOS  ] int13_harddisk: function 48, ELDL out of range b7
-00057768208i[BIOS  ] int13_harddisk: function 48, ELDL out of range b8
-00057771561i[BIOS  ] int13_harddisk: function 48, ELDL out of range b9
-00057774915i[BIOS  ] int13_harddisk: function 48, ELDL out of range ba
-00057778269i[BIOS  ] int13_harddisk: function 48, ELDL out of range bb
-00057781623i[BIOS  ] int13_harddisk: function 48, ELDL out of range bc
-00057784977i[BIOS  ] int13_harddisk: function 48, ELDL out of range bd
-00057788331i[BIOS  ] int13_harddisk: function 48, ELDL out of range be
-00057791685i[BIOS  ] int13_harddisk: function 48, ELDL out of range bf
-00057795038i[BIOS  ] int13_harddisk: function 48, ELDL out of range c0
-00057798391i[BIOS  ] int13_harddisk: function 48, ELDL out of range c1
-00057801744i[BIOS  ] int13_harddisk: function 48, ELDL out of range c2
-00057805097i[BIOS  ] int13_harddisk: function 48, ELDL out of range c3
-00057808450i[BIOS  ] int13_harddisk: function 48, ELDL out of range c4
-00057811803i[BIOS  ] int13_harddisk: function 48, ELDL out of range c5
-00057815156i[BIOS  ] int13_harddisk: function 48, ELDL out of range c6
-00057818509i[BIOS  ] int13_harddisk: function 48, ELDL out of range c7
-00057821862i[BIOS  ] int13_harddisk: function 48, ELDL out of range c8
-00057825215i[BIOS  ] int13_harddisk: function 48, ELDL out of range c9
-00057828569i[BIOS  ] int13_harddisk: function 48, ELDL out of range ca
-00057831923i[BIOS  ] int13_harddisk: function 48, ELDL out of range cb
-00057835277i[BIOS  ] int13_harddisk: function 48, ELDL out of range cc
-00057838631i[BIOS  ] int13_harddisk: function 48, ELDL out of range cd
-00057841985i[BIOS  ] int13_harddisk: function 48, ELDL out of range ce
-00057845339i[BIOS  ] int13_harddisk: function 48, ELDL out of range cf
-00057848692i[BIOS  ] int13_harddisk: function 48, ELDL out of range d0
-00057852045i[BIOS  ] int13_harddisk: function 48, ELDL out of range d1
-00057855398i[BIOS  ] int13_harddisk: function 48, ELDL out of range d2
-00057858751i[BIOS  ] int13_harddisk: function 48, ELDL out of range d3
-00057862104i[BIOS  ] int13_harddisk: function 48, ELDL out of range d4
-00057865457i[BIOS  ] int13_harddisk: function 48, ELDL out of range d5
-00057868810i[BIOS  ] int13_harddisk: function 48, ELDL out of range d6
-00057872163i[BIOS  ] int13_harddisk: function 48, ELDL out of range d7
-00057875516i[BIOS  ] int13_harddisk: function 48, ELDL out of range d8
-00057878869i[BIOS  ] int13_harddisk: function 48, ELDL out of range d9
-00057882223i[BIOS  ] int13_harddisk: function 48, ELDL out of range da
-00057885577i[BIOS  ] int13_harddisk: function 48, ELDL out of range db
-00057888931i[BIOS  ] int13_harddisk: function 48, ELDL out of range dc
-00057892285i[BIOS  ] int13_harddisk: function 48, ELDL out of range dd
-00057895639i[BIOS  ] int13_harddisk: function 48, ELDL out of range de
-00057898993i[BIOS  ] int13_harddisk: function 48, ELDL out of range df
-00061270596i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e1
-00061274179i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e2
-00061277762i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e3
-00061281345i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e4
-00061284928i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e5
-00061288511i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e6
-00061292094i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e7
-00061295290i[BIOS  ] int13_cdrom: function 48, ELDL out of range e8
-00061298486i[BIOS  ] int13_cdrom: function 48, ELDL out of range e9
-00061301683i[BIOS  ] int13_cdrom: function 48, ELDL out of range ea
-00061304880i[BIOS  ] int13_cdrom: function 48, ELDL out of range eb
-00061308077i[BIOS  ] int13_cdrom: function 48, ELDL out of range ec
-00061311274i[BIOS  ] int13_cdrom: function 48, ELDL out of range ed
-00061314471i[BIOS  ] int13_cdrom: function 48, ELDL out of range ee
-00061317668i[BIOS  ] int13_cdrom: function 48, ELDL out of range ef
-00066926136i[BXVGA ] VBE set bpp (32)
-00066926148i[BXVGA ] VBE set xres (1024)
-00066926160i[BXVGA ] VBE set yres (768)
-00066926242i[BXVGA ] VBE enabling x 1024, y 768, bpp 32, 3145728 bytes visible
-00185432283i[BIOS  ] *** int 15h function AX=ec00, BX=0002 not yet supported!
-00199096431i[CPU0  ] WARNING: HLT instruction with IF=0!
+00000333062i[KBD   ] reset-disable command received
+00000338314i[BIOS  ] Starting rombios32
+00000338752i[BIOS  ] Shutdown flag 0
+00000339360i[BIOS  ] ram_size=0x10000000
+00000339815i[BIOS  ] ram_end=256MB
+00000489370i[BIOS  ] Found 1 cpu(s)
+00000503328i[BIOS  ] bios_table_addr: 0x000fa168 end=0x000fcc00
+00000831144i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001159079i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
+00001159103i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
+00001159127i[P2ISA ] PCI IRQ routing: PIRQC# set to 0x0b
+00001159151i[P2ISA ] PCI IRQ routing: PIRQD# set to 0x09
+00001159161i[P2ISA ] write: ELCR2 = 0x0a
+00001159930i[BIOS  ] PIIX3/PIIX4 init: elcr=00 0a
+00001173606i[BIOS  ] PCI: bus=0 devfn=0x00: vendor_id=0x8086 device_id=0x1237 class=0x0600
+00001175950i[BIOS  ] PCI: bus=0 devfn=0x08: vendor_id=0x8086 device_id=0x7000 class=0x0601
+00001178133i[BIOS  ] PCI: bus=0 devfn=0x09: vendor_id=0x8086 device_id=0x7010 class=0x0101
+00001178368i[PIDE  ] BAR #4: i/o base address = 0xc000
+00001178984i[BIOS  ] region 4: 0x0000c000
+00001181019i[BIOS  ] PCI: bus=0 devfn=0x0a: vendor_id=0x8086 device_id=0x7020 class=0x0c03
+00001181232i[UHCI  ] BAR #4: i/o base address = 0xc020
+00001181848i[BIOS  ] region 4: 0x0000c020
+00001181976i[UHCI  ] new IRQ line = 9
+00001183898i[BIOS  ] PCI: bus=0 devfn=0x0b: vendor_id=0x8086 device_id=0x7113 class=0x0680
+00001184174i[ACPI  ] new IRQ line = 11
+00001184188i[ACPI  ] new IRQ line = 9
+00001184216i[ACPI  ] new PM base address: 0xb000
+00001184230i[ACPI  ] new SM base address: 0xb100
+00001184258i[PCI   ] setting SMRAM control register to 0x4a
+00001348393i[CPU0  ] Enter to System Management Mode
+00001348403i[CPU0  ] RSM: Resuming from System Management Mode
+00001512459i[PCI   ] setting SMRAM control register to 0x0a
+00001539122i[BIOS  ] MP table addr=0x000fa240 MPC table addr=0x000fa170 size=0xc8
+00001540829i[BIOS  ] SMBIOS table addr=0x000fa250
+00001542918i[BIOS  ] ACPI tables: RSDP addr=0x000fa370 ACPI DATA addr=0x0fff0000 size=0xff8
+00001545903i[BIOS  ] Firmware waking vector 0xfff00cc
+00001548157i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001548887i[BIOS  ] bios_table_cur_addr: 0x000fa394
+00001648840i[VBIOS ] VGABios ID: vgabios.c 2025-01-08
+00001648919i[BXVGA ] VBE known Display Interface b0c0
+00001648959i[BXVGA ] VBE known Display Interface b0c5
+00001650380i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
+00005338145i[BIOS  ] IDE time out
+00052145279i[BIOS  ] Booting from 07c0:0000
+00057565434i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=80
+00057569173i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=81
+00057572912i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=82
+00057576651i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=83
+00057580390i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=84
+00057584129i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=85
+00057587868i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=86
+00057591607i[BIOS  ] int13_harddisk: function 48, unmapped device for ELDL=87
+00057594959i[BIOS  ] int13_harddisk: function 48, ELDL out of range 88
+00057598311i[BIOS  ] int13_harddisk: function 48, ELDL out of range 89
+00057601664i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8a
+00057605017i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8b
+00057608370i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8c
+00057611723i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8d
+00057615076i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8e
+00057618429i[BIOS  ] int13_harddisk: function 48, ELDL out of range 8f
+00057621781i[BIOS  ] int13_harddisk: function 48, ELDL out of range 90
+00057625133i[BIOS  ] int13_harddisk: function 48, ELDL out of range 91
+00057628485i[BIOS  ] int13_harddisk: function 48, ELDL out of range 92
+00057631837i[BIOS  ] int13_harddisk: function 48, ELDL out of range 93
+00057635189i[BIOS  ] int13_harddisk: function 48, ELDL out of range 94
+00057638541i[BIOS  ] int13_harddisk: function 48, ELDL out of range 95
+00057641893i[BIOS  ] int13_harddisk: function 48, ELDL out of range 96
+00057645245i[BIOS  ] int13_harddisk: function 48, ELDL out of range 97
+00057648597i[BIOS  ] int13_harddisk: function 48, ELDL out of range 98
+00057651949i[BIOS  ] int13_harddisk: function 48, ELDL out of range 99
+00057655302i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9a
+00057658655i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9b
+00057662008i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9c
+00057665361i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9d
+00057668714i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9e
+00057672067i[BIOS  ] int13_harddisk: function 48, ELDL out of range 9f
+00057675443i[BIOS  ] int13_harddisk: function 48, ELDL out of range a0
+00057678796i[BIOS  ] int13_harddisk: function 48, ELDL out of range a1
+00057682149i[BIOS  ] int13_harddisk: function 48, ELDL out of range a2
+00057685502i[BIOS  ] int13_harddisk: function 48, ELDL out of range a3
+00057688855i[BIOS  ] int13_harddisk: function 48, ELDL out of range a4
+00057692208i[BIOS  ] int13_harddisk: function 48, ELDL out of range a5
+00057695561i[BIOS  ] int13_harddisk: function 48, ELDL out of range a6
+00057698914i[BIOS  ] int13_harddisk: function 48, ELDL out of range a7
+00057702267i[BIOS  ] int13_harddisk: function 48, ELDL out of range a8
+00057705620i[BIOS  ] int13_harddisk: function 48, ELDL out of range a9
+00057708974i[BIOS  ] int13_harddisk: function 48, ELDL out of range aa
+00057712328i[BIOS  ] int13_harddisk: function 48, ELDL out of range ab
+00057715682i[BIOS  ] int13_harddisk: function 48, ELDL out of range ac
+00057719036i[BIOS  ] int13_harddisk: function 48, ELDL out of range ad
+00057722390i[BIOS  ] int13_harddisk: function 48, ELDL out of range ae
+00057725744i[BIOS  ] int13_harddisk: function 48, ELDL out of range af
+00057729097i[BIOS  ] int13_harddisk: function 48, ELDL out of range b0
+00057732450i[BIOS  ] int13_harddisk: function 48, ELDL out of range b1
+00057735803i[BIOS  ] int13_harddisk: function 48, ELDL out of range b2
+00057739156i[BIOS  ] int13_harddisk: function 48, ELDL out of range b3
+00057742509i[BIOS  ] int13_harddisk: function 48, ELDL out of range b4
+00057745862i[BIOS  ] int13_harddisk: function 48, ELDL out of range b5
+00057749215i[BIOS  ] int13_harddisk: function 48, ELDL out of range b6
+00057752568i[BIOS  ] int13_harddisk: function 48, ELDL out of range b7
+00057755921i[BIOS  ] int13_harddisk: function 48, ELDL out of range b8
+00057759274i[BIOS  ] int13_harddisk: function 48, ELDL out of range b9
+00057762628i[BIOS  ] int13_harddisk: function 48, ELDL out of range ba
+00057765982i[BIOS  ] int13_harddisk: function 48, ELDL out of range bb
+00057769336i[BIOS  ] int13_harddisk: function 48, ELDL out of range bc
+00057772690i[BIOS  ] int13_harddisk: function 48, ELDL out of range bd
+00057776044i[BIOS  ] int13_harddisk: function 48, ELDL out of range be
+00057779398i[BIOS  ] int13_harddisk: function 48, ELDL out of range bf
+00057782751i[BIOS  ] int13_harddisk: function 48, ELDL out of range c0
+00057786104i[BIOS  ] int13_harddisk: function 48, ELDL out of range c1
+00057789457i[BIOS  ] int13_harddisk: function 48, ELDL out of range c2
+00057792810i[BIOS  ] int13_harddisk: function 48, ELDL out of range c3
+00057796163i[BIOS  ] int13_harddisk: function 48, ELDL out of range c4
+00057799516i[BIOS  ] int13_harddisk: function 48, ELDL out of range c5
+00057802869i[BIOS  ] int13_harddisk: function 48, ELDL out of range c6
+00057806222i[BIOS  ] int13_harddisk: function 48, ELDL out of range c7
+00057809575i[BIOS  ] int13_harddisk: function 48, ELDL out of range c8
+00057812928i[BIOS  ] int13_harddisk: function 48, ELDL out of range c9
+00057816282i[BIOS  ] int13_harddisk: function 48, ELDL out of range ca
+00057819636i[BIOS  ] int13_harddisk: function 48, ELDL out of range cb
+00057822990i[BIOS  ] int13_harddisk: function 48, ELDL out of range cc
+00057826344i[BIOS  ] int13_harddisk: function 48, ELDL out of range cd
+00057829698i[BIOS  ] int13_harddisk: function 48, ELDL out of range ce
+00057833052i[BIOS  ] int13_harddisk: function 48, ELDL out of range cf
+00057836405i[BIOS  ] int13_harddisk: function 48, ELDL out of range d0
+00057839758i[BIOS  ] int13_harddisk: function 48, ELDL out of range d1
+00057843111i[BIOS  ] int13_harddisk: function 48, ELDL out of range d2
+00057846464i[BIOS  ] int13_harddisk: function 48, ELDL out of range d3
+00057849817i[BIOS  ] int13_harddisk: function 48, ELDL out of range d4
+00057853170i[BIOS  ] int13_harddisk: function 48, ELDL out of range d5
+00057856523i[BIOS  ] int13_harddisk: function 48, ELDL out of range d6
+00057859876i[BIOS  ] int13_harddisk: function 48, ELDL out of range d7
+00057863229i[BIOS  ] int13_harddisk: function 48, ELDL out of range d8
+00057866582i[BIOS  ] int13_harddisk: function 48, ELDL out of range d9
+00057869936i[BIOS  ] int13_harddisk: function 48, ELDL out of range da
+00057873290i[BIOS  ] int13_harddisk: function 48, ELDL out of range db
+00057876644i[BIOS  ] int13_harddisk: function 48, ELDL out of range dc
+00057879998i[BIOS  ] int13_harddisk: function 48, ELDL out of range dd
+00057883352i[BIOS  ] int13_harddisk: function 48, ELDL out of range de
+00057886706i[BIOS  ] int13_harddisk: function 48, ELDL out of range df
+00061227733i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e1
+00061231316i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e2
+00061234899i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e3
+00061238482i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e4
+00061242065i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e5
+00061245648i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e6
+00061249231i[BIOS  ] int13_cdrom: function 48, unmapped device for ELDL=e7
+00061252427i[BIOS  ] int13_cdrom: function 48, ELDL out of range e8
+00061255623i[BIOS  ] int13_cdrom: function 48, ELDL out of range e9
+00061258820i[BIOS  ] int13_cdrom: function 48, ELDL out of range ea
+00061262017i[BIOS  ] int13_cdrom: function 48, ELDL out of range eb
+00061265214i[BIOS  ] int13_cdrom: function 48, ELDL out of range ec
+00061268411i[BIOS  ] int13_cdrom: function 48, ELDL out of range ed
+00061271608i[BIOS  ] int13_cdrom: function 48, ELDL out of range ee
+00061274805i[BIOS  ] int13_cdrom: function 48, ELDL out of range ef
+00066847613i[BXVGA ] VBE set bpp (32)
+00066847625i[BXVGA ] VBE set xres (1024)
+00066847637i[BXVGA ] VBE set yres (768)
+00066847719i[BXVGA ] VBE enabling x 1024, y 768, bpp 32, 3145728 bytes visible
+00185542202i[BIOS  ] *** int 15h function AX=ec00, BX=0002 not yet supported!
+00199631730i[CPU0  ] WARNING: HLT instruction with IF=0!
+78132352801i[CPU0  ] CPU is in long mode (halted)
+78132352801i[CPU0  ] CS.mode = 64 bit
+78132352801i[CPU0  ] SS.mode = 64 bit
+78132352801i[CPU0  ] EFER = 0x00000d00: ffxsr NXE LMA LME sce
+78132352801i[CPU0  ] XCR0=0x00000001: tiledata tilecfg hwp lbr uintr hdc cet_s cet_u pasid pkru pt hi_zmm zmm_hi256 opmask bndcfg bndregs ymm sse FPU
+78132352801i[CPU0  ] | RAX=000000000000002f  RBX=ffff80000ff7ef00
+78132352801i[CPU0  ] | RCX=0000000000000007  RDX=000000000000000a
+78132352801i[CPU0  ] | RSP=ffff80000ff7eee0  RBP=ffff80000ff7eef0
+78132352801i[CPU0  ] | RSI=000000000009f000  RDI=0000000000000000
+78132352801i[CPU0  ] |  R8=0000000000000000   R9=0000000000000001
+78132352801i[CPU0  ] | R10=0000000000000000  R11=0000000000000000
+78132352801i[CPU0  ] | R12=0000000000000000  R13=0000000000000000
+78132352801i[CPU0  ] | R14=0000000000000000  R15=0000000000000000
+78132352801i[CPU0  ] | EFLAGS=00000086: id vip vif ac vm rf nt IOPL=0 of df if tf SF zf af PF cf
+78132352801i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+78132352801i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 00000000 0 0
+78132352801i[CPU0  ] |  MSR_FS_BASE:0000000000000000
+78132352801i[CPU0  ] |  MSR_GS_BASE:0000000000000000
+78132352801i[CPU0  ] | RIP=ffffffff80000381 (ffffffff80000381)
+78132352801i[CPU0  ] | CR0=0x80010011: PG cd nw ac WP ne ET ts em mp PE
+78132352801i[CPU0  ] | CR2=0x0000000000000000
+78132352801i[CPU0  ] | CR3=0x000000000ff6e000
+78132352801i[CPU0  ] | CR4=0x00000020: lass uintr pks cet pke smap smep keylock osxsave pcid fsgsbase smx vmx la57 umip osxmmexcpt osfxsr pce pge mce PAE pse de tsd pvi vme
+78132352801i[CMOS  ] Last time: 1782142877 tz=utc (Mon Jun 22 15:41:17   2026)
+78132352801i[XGUI  ] Exit
+78132352801i[SIM   ] quit_sim called with exit code 0
