@@ -11,6 +11,8 @@
 #include "serial.h"
 #include "gdt/gdt.h"
 #include "idt/idt.h"
+#include "drivers/timer.h"
+#include "drivers/kb.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
