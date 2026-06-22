@@ -20,7 +20,7 @@
 #define GDT_DESCRIPTOR     (1 << 4)  // 1 = code/data, 0 = system
 #define GDT_EXECUTABLE     (1 << 3)
 #define GDT_READABLE       (1 << 1)  // for code segments
-#define GDT_WRITABLE       (1 << 1)  // for data segments
+#define GDT_WRITEABLE       (1 << 1)  // for data segments
 
 #define GDT_LONG_MODE      (1 << 5)  // L bit — 64-bit code segment
 #define GDT_GRANULARITY    (1 << 7)  // page granularity
@@ -60,12 +60,12 @@ typedef struct PACKED TSS{
     uint16_t iopb;
 }TSS;
 
-
-void initGDT();
+void initGDT(void);
+void load_tss(uint64_t rsp0);
 void encode_gdt_seg(int index, uint8_t access, uint8_t gran);
 void encode_tss_seg(uint64_t base);
 
-extern void load_gdt(uint32_t addr);
-extern void flush();
-extern void load_tss();
+extern void gdt_flush(GDT *gdtr);
+extern void tss_flush(void);
+
 #endif
