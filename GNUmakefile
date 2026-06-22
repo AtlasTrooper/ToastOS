@@ -28,6 +28,9 @@ LDFLAGS = -m elf_x86_64 -nostdlib -static \
 
 QEMU_FLAGS = -serial stdio -m 256M
 
+BOCHS      = bochs
+BOCHSRC    = bochsrc.txt
+
 # ========================
 # Directories / outputs
 # ========================
@@ -40,12 +43,13 @@ ISO        = $(BUILD)/toast.iso
 # Source discovery
 # ========================
 C_SRCS    := $(shell find kernel -type f -name '*.c' | LC_ALL=C sort)
-ASM_SRCS  := $(shell find kernel -type f -name '*.s' | LC_ALL=C sort)
+ASM_SRCS  := $(shell find kernel -type f \( -name '*.s' -o -name '*.S' \) | LC_ALL=C sort)
 NASM_SRCS := $(shell find kernel -type f -name '*.asm' | LC_ALL=C sort)
 PSF_SRCS  := $(shell find kernel -type f -name '*.psf' | LC_ALL=C sort)
 
 OBJS := $(patsubst kernel/%.c,   $(BUILD)/%.c.o,   $(C_SRCS))   \
-        $(patsubst kernel/%.s,   $(BUILD)/%.S.o,   $(ASM_SRCS)) \
+        $(patsubst kernel/%.s,   $(BUILD)/%.s.o,   $(filter %.s,  $(ASM_SRCS))) \
+        $(patsubst kernel/%.S,   $(BUILD)/%.S.o,   $(filter %.S,  $(ASM_SRCS))) \
         $(patsubst kernel/%.asm, $(BUILD)/%.asm.o, $(NASM_SRCS)) \
         $(patsubst kernel/%.psf, $(BUILD)/%.psf.o, $(PSF_SRCS))
 
@@ -67,7 +71,11 @@ $(BUILD)/%.c.o: kernel/%.c GNUmakefile
 # ========================
 # Assemble GAS (.S)
 # ========================
-$(BUILD)/%.S.o: kernel/%.s GNUmakefile
+$(BUILD)/%.s.o: kernel/%.s GNUmakefile
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+$(BUILD)/%.S.o: kernel/%.S GNUmakefile
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
@@ -126,6 +134,18 @@ run: $(ISO)
 .PHONY: qemu-debug
 qemu-debug: $(ISO)
 	$(QEMU) -cdrom $(ISO) $(QEMU_FLAGS) -d int -no-reboot -no-shutdown
+
+
+# ========================
+# Bochs debugger
+# ========================
+.PHONY: bochs-debug
+bochs-debug: $(ISO)
+	$(BOCHS) -q -f $(BOCHSRC) -debugger
+
+.PHONY: bochs
+bochs: $(ISO)
+	$(BOCHS) -q -f $(BOCHSRC)
 
 # ========================
 # Clean
