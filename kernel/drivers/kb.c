@@ -1,12 +1,6 @@
 #include "kb.h"
 #include "../stdlib/stdio.h"
 
-// Forward declarations for shell functions
-// (will be replaced with proper includes once tsh is ported)
-extern void get_prev_cmd(void);
-extern void get_next_cmd(void);
-extern void shell_clear(void);
-
 keymap_t def_layout = {
     "US-English",
     { 0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', '\t',
@@ -55,8 +49,8 @@ void kb_handler(system_state *sys) {
     if (extended) {
         extended = 0;
         switch (scancode) {
-            // case UP_ARROW:   get_prev_cmd(); break;
-            // case DOWN_ARROW: get_next_cmd(); break;
+            case UP_ARROW:   get_prev_cmd(); break;
+            case DOWN_ARROW: get_next_cmd(); break;
             default: break;
         }
         return;

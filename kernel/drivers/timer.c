@@ -2,6 +2,7 @@
 #include "../io.h"
 #include "../serial.h"
 #include "../idt/idt.h"
+#include "../shell/console.h"
 
 #define INIT_FREQ 1193180
 
@@ -15,6 +16,7 @@ int get_tick_count(void) {
 void timer_handler(system_state *sys) {
     (void)sys;
     tick_count++;
+    console_tick();
 }
 
 void timer_wait_t(int ticks) {

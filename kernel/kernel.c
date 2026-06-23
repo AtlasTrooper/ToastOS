@@ -13,6 +13,7 @@
 #include "idt/idt.h"
 #include "drivers/timer.h"
 #include "drivers/kb.h"
+#include "shell/tsh.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -36,22 +37,12 @@ void _start(void) {
     console_init();
     console_set_color(CON_WHITE, CON_BLACK);
 
-    printf("ToastOS x86_64 - framebuffer console OK\n");
-    printf("cols: %d  rows: %d\n",
-           fb_get()->width  / font_width(),
-           fb_get()->height / font_height());
- 
-    console_set_color(CON_LIGHT_GREEN, CON_BLACK);
-    putstr("tsh> ");
-    console_set_color(CON_LIGHT_GREY, CON_BLACK);
-
     debug_print("\n[Hello from the 64 bit serial port!]\n");
 
     initGDT();
     initIDT();
-    printf("GDT and IDT loaded\n");
     init_timer();
     kb_init();
 
-    hcf();
+    init_shell();
 }

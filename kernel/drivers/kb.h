@@ -3,6 +3,7 @@
 #include "../util.h"
 #include "../io.h"
 #include "../idt/idt.h"
+#include "../shell/tsh.h"
 
 #define KB_DATA    0x60
 #define KB_COM     0x64

@@ -1,0 +1,43 @@
+#pragma once
+
+#include <stdint.h>
+#include <stddef.h>
+#include "../shell/console.h"
+#include "../stdlib/stdio.h"
+#include "../stdlib/string.h"
+#include "../drivers/kb.h"
+
+void init_shell(void);
+void readline(char *buf, int max);
+int  parse_args(char *line, char **argv, int max_args);
+void shell_exec(char *line);
+void shell_clear(void);
+
+void update_history(char *line);
+void get_prev_cmd(void);
+void get_next_cmd(void);
+
+void cmd_help  (int argc, char **argv);
+void cmd_echo  (int argc, char **argv);
+void cmd_darud (int argc, char **argv);
+void cmd_lsh   (int argc, char **argv);
+void cmd_exit  (int argc, char **argv);
+
+void print_banner(void);
+void print_prompt(void);
+
+typedef void (*cmd_func)(int argc, char **argv);
+
+typedef struct {
+    const char *name;
+    cmd_func    ptr;
+    const char *help_msg;
+} command_t;
+
+static const command_t commands[] = {
+    { "help",  cmd_help,  "Explains the operations of different commands"              },
+    { "echo",  cmd_echo,  "Prints the arguments following the command"                 },
+    { "darud", cmd_darud, ""                                                            },
+    { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
+    { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   },
+};

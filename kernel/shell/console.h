@@ -26,3 +26,4 @@ void clearLine(size_t row);
 void clearCurrentLine(void);
 void terminal_clear(void);
 void terminal_scroll(void);
+void console_tick(void);

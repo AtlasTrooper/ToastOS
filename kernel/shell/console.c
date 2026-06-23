@@ -2,6 +2,10 @@
 #include "../framebuffer.h"
 #include "../font.h"
 
+#define CURSOR_BLINK_TICKS 50
+static volatile int cursor_visible = 0;
+static volatile int cursor_blink_counter = 0;
+
 static uint32_t con_fg = CON_LIGHT_GREY;
 static uint32_t con_bg = CON_BLACK;
 static uint32_t cursor_col = 0;
@@ -119,4 +123,26 @@ void putchar(char c) {
 
 void putstr(const char *str) {
     while (*str) putchar(*str++);
+}
+
+void console_tick() {
+    cursor_blink_counter ++;
+    if (cursor_blink_counter < CURSOR_BLINK_TICKS) {
+        return;
+    }
+
+    cursor_blink_counter = 0;
+
+    uint32_t px = cursor_col * font_width();
+    uint32_t py = cursor_row * font_height();
+    uint32_t w  = font_width();
+    uint32_t h  = font_height();
+
+    if(cursor_visible) {
+        fb_draw_rect(px, py, w, h, con_bg);
+        cursor_visible = 0;
+    } else {
+        fb_draw_rect(px, py, w, h, con_fg);
+        cursor_visible = 1;
+    }
 }
