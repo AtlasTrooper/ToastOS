@@ -6,6 +6,7 @@
 #include "../stdlib/stdio.h"
 #include "../stdlib/string.h"
 #include "../drivers/kb.h"
+#include "../drivers/timer.h"
 
 void init_shell(void);
 void readline(char *buf, int max);

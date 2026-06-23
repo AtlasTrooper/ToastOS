@@ -172,8 +172,7 @@ void cmd_echo(int argc, char **argv) {
 
 void cmd_darud(int argc, char **argv) {
     (void)argc; (void)argv;
-    /* play_sandstorm() — wire up once audio driver is ported */
-    putstr("darud: sandstorm not yet ported to 64-bit\n");
+    play_sandstorm();
 }
 
 void cmd_lsh(int argc, char **argv) {
@@ -191,7 +190,7 @@ void cmd_exit(int argc, char **argv) {
 }
 
 void print_banner(void) {
-    console_set_color(CON_LIGHT_BROWN, CON_BLACK);
+    console_set_color(CON_WHITE, CON_BLACK);
     putstr("=================================================================\n");
     putstr(" ToastOS x86_64  |  tsh  |  est. 2026  Tomer Wiesel\n");
     putstr(" (eden was here :)\n");
