@@ -209,7 +209,7 @@ void print_banner(void) {
     putstr(" ToastOS x86_64  |  tsh  |  est. 2026  Tomer Wiesel\n");
     putstr(" (eden was here :)\n");
     putstr("=================================================================\n");
-    console_set_color(CON_LIGHT_GREY, CON_BLACK);
+    console_set_color(CON_WHITE, CON_BLACK);
 }
 
 void print_prompt(void) {
@@ -217,5 +217,5 @@ void print_prompt(void) {
     putstr("tsh");
     console_set_color(CON_WHITE, CON_BLACK);
     putstr("> ");
-    console_set_color(CON_LIGHT_GREY, CON_BLACK);
+    console_set_color(CON_WHITE, CON_BLACK);
 }

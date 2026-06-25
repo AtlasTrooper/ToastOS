@@ -6,7 +6,7 @@
 static volatile int cursor_visible = 0;
 static volatile int cursor_blink_counter = 0;
 
-static uint32_t con_fg = CON_LIGHT_GREY;
+static uint32_t con_fg = CON_WHITE;
 static uint32_t con_bg = CON_BLACK;
 static uint32_t cursor_col = 0;
 static uint32_t cursor_row = 0;
