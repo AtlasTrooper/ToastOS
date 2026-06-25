@@ -52,7 +52,7 @@ Below is a screenshot of the shell running, showing the welcome banner and the b
 
 ---
 
-### Stage 2 — Memory Allocation & File System (In Progress)
+### Stage 2 — Dynamic Memory Allocation (Complete)
 
 **Goal:** Implement dynamic memory management and support for a few basic filesystems (ext2, FAT32).
 
@@ -85,23 +85,6 @@ Move the kernel from 32-bit protected mode to 64-bit long mode.
 
 ---
 
-### Stage 3 — Networking (Upcoming)
-
-Implement a basic network stack.
-
----
-
-### Stage 4 — Running Software (Upcoming)
-
-Target: run existing software such as `bash` or Doom.
-
----
-
-### Stage 5 — GUI (Upcoming)
-
-Implement a graphical user interface.
-
----
 
 ## Resources & References
 
