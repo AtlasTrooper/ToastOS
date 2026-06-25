@@ -7,7 +7,7 @@
 #include "../stdlib/string.h"
 #include "../drivers/kb.h"
 #include "../drivers/timer.h"
-
+#include "../mmu/pmm.h"
 void init_shell(void);
 void readline(char *buf, int max);
 int  parse_args(char *line, char **argv, int max_args);
@@ -22,6 +22,7 @@ void cmd_help  (int argc, char **argv);
 void cmd_echo  (int argc, char **argv);
 void cmd_darud (int argc, char **argv);
 void cmd_lsh   (int argc, char **argv);
+void cmd_meminfo (int argc, char **argv);
 void cmd_exit  (int argc, char **argv);
 
 void print_banner(void);
@@ -40,5 +41,6 @@ static const command_t commands[] = {
     { "echo",  cmd_echo,  "Prints the arguments following the command"                 },
     { "darud", cmd_darud, ""                                                            },
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
+    {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   },
 };

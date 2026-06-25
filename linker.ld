@@ -9,7 +9,7 @@ PHDRS {
 }
 
 SECTIONS {
-    . = 0xffffffff80000000;
+    . = 0xffffffff80000000; #2GB higher half
 
     .text : { *(.text .text.*) } :text
     . = ALIGN(CONSTANT(MAXPAGESIZE));

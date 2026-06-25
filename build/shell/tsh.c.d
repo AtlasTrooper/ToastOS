@@ -5,7 +5,8 @@ build/shell/tsh.c.o: kernel/shell/tsh.c kernel/shell/tsh.h \
  kernel/shell/../drivers/../idt/idt.h \
  kernel/shell/../drivers/../idt/../gdt/gdt.h \
  kernel/shell/../drivers/../idt/../gdt/../mmu/memory.h \
- kernel/shell/../drivers/timer.h
+ kernel/shell/../drivers/timer.h kernel/shell/../mmu/pmm.h \
+ kernel/shell/../mmu/../limine.h
 kernel/shell/tsh.h:
 kernel/shell/../shell/console.h:
 kernel/shell/../stdlib/stdio.h:
@@ -17,3 +18,5 @@ kernel/shell/../drivers/../idt/idt.h:
 kernel/shell/../drivers/../idt/../gdt/gdt.h:
 kernel/shell/../drivers/../idt/../gdt/../mmu/memory.h:
 kernel/shell/../drivers/timer.h:
+kernel/shell/../mmu/pmm.h:
+kernel/shell/../mmu/../limine.h:

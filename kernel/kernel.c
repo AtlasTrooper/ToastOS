@@ -14,6 +14,7 @@
 #include "drivers/timer.h"
 #include "drivers/kb.h"
 #include "shell/tsh.h"
+#include "mmu/pmm.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -43,6 +44,8 @@ void _start(void) {
     initIDT();
     init_timer();
     kb_init();
+    
+    init_pmm();
 
     init_shell();
 }

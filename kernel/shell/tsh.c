@@ -142,12 +142,12 @@ void cmd_help(int argc, char **argv) {
     int cmd_count = (int)(sizeof(commands) / sizeof(command_t));
 
     if (argc < 2) {
-        putstr("No command given — printing all commands\n\n");
+        putstr("No command given - printing all commands\n\n");
         putstr("            CMD LIST            \n");
         putstr("--------------------------------\n");
         for (int i = 0; i < cmd_count; i++) {
             if (strlen(commands[i].help_msg) > 0)
-                printf("  %-8s : %s\n", commands[i].name, commands[i].help_msg);
+                printf("  %s : %s \n", commands[i].name, commands[i].help_msg);
         }
         putstr("--------------------------------\n");
     } else {
@@ -181,6 +181,20 @@ void cmd_lsh(int argc, char **argv) {
     if (count == 0 && history_count > 0) count = HISTORY_MAX;
     for (int i = 0; i < count; i++)
         printf("  %d : %s\n", i, cmd_history[i]);
+}
+
+void cmd_meminfo(int argc, char **argv) {
+
+    putstr("===============\n");
+    putstr("= ToastOS MMU =\n");
+    putstr("===============\n");
+    
+    putstr("\n_______PMM_______\n\n");
+
+    uint64_t hhdm = get_hhdm();
+    printf("HHDM BASE IS 0x%lx\n", hhdm);
+
+    putstr("\n");
 }
 
 void cmd_exit(int argc, char **argv) {
