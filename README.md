@@ -10,7 +10,7 @@ I've always been interested in low-level programming and have wanted to learn ho
 
 ToastOS is an x86 operating system built from the ground up. The plan is to start with a minimal kernel capable of printing text, then work toward memory management, filesystems, networking, and eventually a graphical interface.
 
-Development follows five core stages, each building on the last.
+Development follows 10 core stages, each building on the last.
 
 ---
 
@@ -19,11 +19,16 @@ Development follows five core stages, each building on the last.
 | Stage | Name | Status |
 |-------|------|--------|
 | 1 | Shell | Complete |
-| 2 | Memory Allocation & File System | In Progress |
-| 2.5 | Transition to 64-bit | Upcoming |
-| 3 | Networking | Upcoming |
-| 4 | Running Software (bash, Doom, etc.) | Upcoming |
-| 5 | GUI | Upcoming |
+| 2 | Dynamic Memory Allocation | Done|
+| 2.5 | Transition to 64-bit | In progress |
+| 3 | Multitasking and Ring 3
+| 4 | Main and boot partition file systems
+| 5 | Usermode stdlib (mussl or glibc)
+| 6 | System-call layer
+| 7 | Running Software (bash, Doom, etc.) | Upcoming |
+| 8 | GUI | Upcoming |
+| 9 | Device drivers (sound, networking card)
+| 10 | Networking | Upcoming |
 
 ---
 
@@ -74,7 +79,7 @@ With physical frame allocation in place, the next step is implementing **page di
 
 ---
 
-### Stage 2.5 — Transition to 64-bit (Upcoming)
+### Stage 2.5 — Transition to 64-bit (In progress)
 
 Move the kernel from 32-bit protected mode to 64-bit long mode.
 
