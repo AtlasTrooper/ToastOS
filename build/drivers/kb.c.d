@@ -7,7 +7,8 @@ build/drivers/kb.c.o: kernel/drivers/kb.c kernel/drivers/kb.h \
  kernel/drivers/../shell/../stdlib/string.h \
  kernel/drivers/../shell/../drivers/timer.h \
  kernel/drivers/../shell/../mmu/pmm.h \
- kernel/drivers/../shell/../mmu/../limine.h
+ kernel/drivers/../shell/../mmu/../limine.h \
+ kernel/drivers/../shell/../mmu/memory.h
 kernel/drivers/kb.h:
 kernel/drivers/../util.h:
 kernel/drivers/../io.h:
@@ -21,3 +22,4 @@ kernel/drivers/../shell/../stdlib/string.h:
 kernel/drivers/../shell/../drivers/timer.h:
 kernel/drivers/../shell/../mmu/pmm.h:
 kernel/drivers/../shell/../mmu/../limine.h:
+kernel/drivers/../shell/../mmu/memory.h:

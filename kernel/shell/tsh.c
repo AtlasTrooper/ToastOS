@@ -189,10 +189,31 @@ void cmd_meminfo(int argc, char **argv) {
     putstr("= ToastOS MMU =\n");
     putstr("===============\n");
     
-    putstr("\n_______PMM_______\n\n");
+    const pmm_header_t *header = get_pmm_header();
 
-    uint64_t hhdm = get_hhdm();
-    printf("HHDM BASE IS 0x%lx\n", hhdm);
+    if (!header) {
+        printf("[PMM] Error: Header pointer is NULL\n");
+        return;
+    }
+
+    printf("==================== PMM ====================\n");
+    printf("HHDM Base Address:       0x%lx\n", header->hhdm_base);
+    printf("Kernel Physical Base:    0x%lx\n", header->kernel_phys_base);
+    printf("Kernel Virtual Base:     0x%lx\n", header->kernel_virt_base);
+    printf("Kernel Physical End:     0x%lx\n", header->kernel_phys_end);
+    printf("---------------------------------------------------------\n");
+    printf("Bitmap Physical Address: 0x%lx\n", header->bitmap_phys);
+    printf("Bitmap Virtual Pointer:  0x%lx\n", (uint64_t)header->b_map);
+    printf("Bitmap Size:             %lu bytes\n", header->bitmap_bytes);
+    printf("---------------------------------------------------------\n");
+    printf("First Allocatable Frame: %lu\n", header->alloc_start_frame);
+    printf("Total Frames Tracked:    %lu\n", header->max_frames);
+    printf("Free Frames Remaining:   %lu\n", header->free_frames);
+    
+    uint64_t total_mib = (header->max_frames * 4096) / (1024 * 1024);
+    uint64_t free_mib = (header->free_frames * 4096) / (1024 * 1024);
+    printf("Memory Managed:          %lu MiB / %lu MiB free\n", free_mib, total_mib);
+    printf("=========================================================\n");
 
     putstr("\n");
 }
