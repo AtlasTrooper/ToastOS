@@ -1,0 +1,12 @@
+*.iso
+
+*.o
+
+*.exe
+*.out
+*.bin
+*.elf
+
+a.out
+
+build/
