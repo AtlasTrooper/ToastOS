@@ -54,32 +54,26 @@ Below is a screenshot of the shell running, showing the welcome banner and the o
 
 ### Stage 2 — Dynamic Memory Allocation (Complete)
 
-**Goal:** Implement a PMM, VMM and Kernel heap.
+The pmm is implemented as a bitmap positioned after the kernel, followed by the kernel heap. The vmm uses a 4 layer paging schema and ditches the old recursive mapping algorithm for a more streamlined walk through the memory map provided by limine.
 
-#### Physical Frame Allocator (Complete)
-
-Recently finished implementing a bitmap-based physical/page frame allocator. Here is the gist of how it works
-
-- The allocator reads the memory map provided by the Multiboot bootloader to determine available physical memory.
-- A bitmap tracks the allocation state of each 4KB page frame (1 bit per frame).
-- The bitmap itself is placed directly after the kernel in memory, followed by the initial page allocation stack.
-- Page tables are reconfigured after initialization to correctly map the kernel and bitmap regions.
-
-Note: a bitmap isn't the most efficient approach, but the goal was to understand how page frame allocation and recursive mapping work before attempting something more complex. A different algorithm (such as the buddy system) may be worth revisiting later.
-
-#### Working Kernel Heap!
-
-Today (June 12, 2026) I ran the first successful dynamic memory allocation test!
-
-#### Next Up: PDT Sync
-
-With physical frame allocation in place, the next step is implementing **page directory table (PDT) synchronization**, to keep page directories consistent across contexts. This lays the groundwork for supporting userspace page tables down the line.
-
+I wrote a generic heap_t struct so that later on I can add per process heaps down the line.
+ 
+Note: I know bitmaps may not be the most efficient algorithm (seeing as they can lead to O(n) search for free space), but for now the main concern was learning the fundementals of building an mmu. I might switch to something like the buddy system in the future.
 ---
 
-### Stage 2.5 — Transition to 64-bit (In progress)
+### Stage 2.5 — Transition to 64-bit (Complete!)
 
-At the moment only the memory management hasn't been fully ported but I am almost done. So far I've brought back the bitmap based PMM.
+The migration was done layer by layer. First building
+a new corss compiler, then swapping out the vga driver for 
+both a linear framebuffer and font drivers as we can no longer
+benefit from the hardcoded text buffer at 0xB800.
+
+IDT and GDT were basically the same aside from the struct rewrite
+as they now took more space and threw out some old fields.
+
+When it came to the mmu I made more concrete changes. For starters I swapped out my hacked together storage allocator for dlmalloc. While it was fun to experiment with the old version, I wanted something compact, stable, and efficient that wouldn't cause problems and need much scaling down the line(aside from some initial adjustments for porting). A storage allocator can be a project on it's own and seeing as my main goal with this project is to learn os development and about x86 architecture, and not storage allocation algorithms, I decided to utilize a well known and well written  allocator instead to save me the massive headache that rolling my own would have led to.
+
+Also added a proper kernel panic(finally) and started expanding the idividual exception handlers for better/more informative debugging.
 
 ---
 
@@ -119,4 +113,4 @@ https://gee.cs.oswego.edu/dl/html/malloc.html
 - **Author:** Tomer Wiesel
 - Initial `printf` implementation by Scott Cosentino. Has since been modified for 64 bit
 - OSDev community for documentation and tutorials
-- Doug Lea's malloc
+- Doug Lea's `malloc`
