@@ -39,6 +39,66 @@ const char *excep_trace[] = {
     "Reserved", "Reserved"
 };
 
+void kpanic(system_state *sys, const char *fmt, ...) {
+
+    //Entering kernel panic, printing fmt message, reg state, stack trace
+    asm("cli");
+
+        printf("\n");
+    printf("==========================================================\n");
+    printf("                    *** KERNEL PANIC ***                  \n");
+    printf("==========================================================\n");
+ 
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    printf("\n");
+ 
+    if (sys) {
+        printf("----------------------------------------------------------\n");
+        printf("  RAX=%016llx  RBX=%016llx\n", sys->rax, sys->rbx);
+        printf("  RCX=%016llx  RDX=%016llx\n", sys->rcx, sys->rdx);
+        printf("  RSI=%016llx  RDI=%016llx\n", sys->rsi, sys->rdi);
+        printf("  RBP=%016llx  RSP=%016llx\n", sys->rbp, sys->rsp);
+        printf("  R8 =%016llx  R9 =%016llx\n", sys->r8,  sys->r9);
+        printf("  R10=%016llx  R11=%016llx\n", sys->r10, sys->r11);
+        printf("  R12=%016llx  R13=%016llx\n", sys->r12, sys->r13);
+        printf("  R14=%016llx  R15=%016llx\n", sys->r14, sys->r15);
+        printf("----------------------------------------------------------\n");
+        printf("  RIP=%016llx  CS =%016llx\n", sys->rip, sys->cs);
+        printf("  RSP=%016llx  SS =%016llx\n", sys->rsp, sys->ss);
+        printf("  RFLAGS=%016llx\n",            sys->rflags);
+        printf("  Error code: %llx\n",           sys->error_code);
+        printf("----------------------------------------------------------\n");
+    }
+ 
+    printf("System halted.\n");
+    printf("==========================================================\n");
+ 
+    for (;;) asm("hlt");
+}
+
+static void pfHandler(system_state *sys) {
+    uint64_t cr2;
+    asm volatile ("mov %%cr2, %0" : "=r"(cr2));
+
+    uint64_t ec = sys->error_code;
+
+    printf("\n[PAGE FAULT]\n");
+    printf("Faulting addr: %016llx\n", cr2);
+    printf("RIP          : %016llx\n", sys->rip);
+    printf("Cause        : %s %s %s %s %s\n",
+    (ec & (1<<0)) ? "Protection violation" : "non-present page",
+    (ec & (1<<1)) ? "write" : "read", 
+    (ec & (1<<2)) ? "user" : "kernel", 
+    (ec & (1<<3)) ? "reserved bit" : "", 
+    (ec & (1<<4)) ? "NX-violation" : "");
+
+    kpanic(sys, "Unhandled page fault at %016llx", cr2);
+
+}
+
 void encode_interrupt_gate(uint32_t index, uint64_t base, uint16_t sel, uint8_t flags) {
     idt_ent[index].base_lo  = base & 0xFFFF;
     idt_ent[index].selector = sel;
@@ -48,16 +108,16 @@ void encode_interrupt_gate(uint32_t index, uint64_t base, uint16_t sel, uint8_t 
     idt_ent[index].base_hi  = (base >> 32) & 0xFFFFFFFF;
     idt_ent[index].reserved = 0;
 }
-//TODO: UPDATE TO KPANIC
+
 void isr_handler(system_state *sys) {
+    
+    if (sys->interr_num == 14) {
+        pfHandler(sys);
+        return;
+    }
+    
     if (sys->interr_num < 32) {
-        printf("\n[EXCEPTION] %s\n", excep_trace[sys->interr_num]);
-        printf("  RIP: %llx  CS: %llx  RFLAGS: %llx\n",
-               sys->rip, sys->cs, sys->rflags);
-        printf("  RSP: %llx  SS: %llx\n", sys->rsp, sys->ss);
-        printf("  Error code: %llx\n", sys->error_code);
-        printf("[HALT]\n");
-        for (;;) asm volatile("hlt");
+        kpanic(sys, "Exception: %s", excep_trace[sys->interr_num]);
     }
 }
 
@@ -151,16 +211,6 @@ void irq_config(void) {
     encode_interrupt_gate(45, (uint64_t)irq13, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(46, (uint64_t)irq14, GDT_CS, INT_GATE_FLAGS);
     encode_interrupt_gate(47, (uint64_t)irq15, GDT_CS, INT_GATE_FLAGS);
-}
-
-void kpanic(system_state *sys, const char *fmt, ...) {
-
-    //Entering kernel panic, printing reg state, stack trace
-    asm("cli");
-
-    
-
-    for (;;) asm("hlt");
 }
 
 void initIDT(void) {
