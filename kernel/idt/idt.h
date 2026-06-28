@@ -38,6 +38,12 @@ typedef struct PACKED {
     uint64_t rip, cs, rflags, rsp, ss;
 } system_state;
 
+/*Kernel panic, pending Ascii art update lol */
+void kpanic(system_state *sys, const char *fmt, ...);
+
+#define KPANIC(sys, fmt, ...) \
+    kpanic(sys, "[%s:%d] " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+    
 void initIDT(void);
 void encode_interrupt_gate(uint32_t index, uint64_t base, uint16_t sel, uint8_t flags);
 void isr_handler(system_state *sys);

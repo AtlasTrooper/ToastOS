@@ -23,17 +23,6 @@
  * (clears flag bits 0-11 and the NX bit 63)               */
 #define VMM_ADDR_MASK  0x000FFFFFFFFFF000ULL
 
-/*
- * map_page  – map one 4 KB virtual page to a physical frame.
- *   v_addr   : virtual address  (will be page-aligned internally)
- *   p_addr   : physical address (will be page-aligned internally)
- *   flags    : OR of VMM_* defines above
- *
- * Intermediate tables (PML4 → PDPT → PD → PT) are allocated on demand
- * from the PMM.  The flags are applied to both the leaf PT entry and any
- * newly created intermediate table entries (with WRITE forced on so the
- * kernel can always reach the next level).
- */
 void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags);
 
 void unmap_page(uint64_t v_addr);

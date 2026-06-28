@@ -48,7 +48,7 @@ void encode_interrupt_gate(uint32_t index, uint64_t base, uint16_t sel, uint8_t 
     idt_ent[index].base_hi  = (base >> 32) & 0xFFFFFFFF;
     idt_ent[index].reserved = 0;
 }
-
+//TODO: UPDATE TO KPANIC
 void isr_handler(system_state *sys) {
     if (sys->interr_num < 32) {
         printf("\n[EXCEPTION] %s\n", excep_trace[sys->interr_num]);
@@ -153,6 +153,15 @@ void irq_config(void) {
     encode_interrupt_gate(47, (uint64_t)irq15, GDT_CS, INT_GATE_FLAGS);
 }
 
+void kpanic(system_state *sys, const char *fmt, ...) {
+
+    //Entering kernel panic, printing reg state, stack trace
+    asm("cli");
+
+    
+
+    for (;;) asm("hlt");
+}
 
 void initIDT(void) {
     idtr.base = (uint64_t)&idt_ent;

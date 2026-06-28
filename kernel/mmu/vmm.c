@@ -1,19 +1,12 @@
 #include "vmm.h"
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
-
 /*
- * pte_to_virt – given a page-table entry that holds a physical address in
- * its upper bits, return the HHDM virtual pointer to that physical page.
+ * helper for my own convenience to get vaddrs for pte entries
  */
 static inline uint64_t *pte_to_virt(uint64_t entry) {
     return (uint64_t *)get_virt_addr(entry & VMM_ADDR_MASK);
 }
 
-/*
- * alloc_table – allocate and zero a fresh 4 KB page-table page.
- * Returns its physical address, or 0 on OOM.
- */
 static uint64_t alloc_table(void) {
     uint64_t phys = alloc_frame();
     if (phys == 0) return 0;
@@ -25,7 +18,7 @@ static uint64_t alloc_table(void) {
 }
 
 /*
- * A 64-bit canonical virtual address is split as:
+ * A 64-bit canonical virtual address split overview:
  *   [63:48]  sign extension (ignored by hardware)
  *   [47:39]  PML4 index   (9 bits)
  *   [38:30]  PDPT index   (9 bits)
@@ -50,18 +43,13 @@ uint64_t get_pml4_phys(void) {
 
 /*
  * map_page
- *
- * Walk PML4 → PDPT → PD → PT, allocating any missing intermediate tables
- * along the way, then write the final PT entry.
- *
- * Intermediate entries always get (flags | VMM_WRITE) so every kernel
- * path can traverse them, regardless of the leaf permissions requested.
+ * walk the 4 layer hierarchy with write enabled on non leafs for traversal
  */
 void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags) {
     v_addr &= VMM_ADDR_MASK;
     p_addr &= VMM_ADDR_MASK;
 
-    /* ── Level 4 : PML4 ── */
+    //PML4
     uint64_t *pml4 = (uint64_t *)get_virt_addr(get_pml4_phys());
     uint64_t  pml4e = pml4[PML4_IDX(v_addr)];
 
@@ -72,7 +60,7 @@ void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags) {
         pml4e = pml4[PML4_IDX(v_addr)];
     }
 
-    /* ── Level 3 : PDPT ── */
+    //PDPT
     uint64_t *pdpt = pte_to_virt(pml4e);
     uint64_t  pdpte = pdpt[PDPT_IDX(v_addr)];
 
@@ -83,7 +71,7 @@ void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags) {
         pdpte = pdpt[PDPT_IDX(v_addr)];
     }
 
-    /* ── Level 2 : PD ── */
+    //PD
     uint64_t *pd  = pte_to_virt(pdpte);
     uint64_t  pde = pd[PD_IDX(v_addr)];
 
@@ -94,39 +82,28 @@ void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags) {
         pde = pd[PD_IDX(v_addr)];
     }
 
-    /* ── Level 1 : PT (leaf) ── */
+    //PT
     uint64_t *pt = pte_to_virt(pde);
     pt[PT_IDX(v_addr)] = p_addr | flags;
 
     invalidate_page(v_addr);
 }
 
-/*
- * unmap_page
- *
- * Walk to the PT leaf entry, free the backing physical frame, and clear
- * the entry.  Does NOT free empty intermediate tables (they stay around
- * for future mappings – add that only if you need a full-featured MM).
- */
 void unmap_page(uint64_t v_addr) {
     v_addr &= VMM_ADDR_MASK;
 
-    /* Level 4 */
     uint64_t *pml4 = (uint64_t *)get_virt_addr(get_pml4_phys());
     uint64_t  pml4e = pml4[PML4_IDX(v_addr)];
     if (!(pml4e & VMM_PRESENT)) return;
 
-    /* Level 3 */
     uint64_t *pdpt = pte_to_virt(pml4e);
     uint64_t  pdpte = pdpt[PDPT_IDX(v_addr)];
     if (!(pdpte & VMM_PRESENT)) return;
 
-    /* Level 2 */
     uint64_t *pd  = pte_to_virt(pdpte);
     uint64_t  pde = pd[PD_IDX(v_addr)];
     if (!(pde & VMM_PRESENT)) return;
 
-    /* Level 1 – leaf */
     uint64_t *pt  = pte_to_virt(pde);
     uint64_t  pte = pt[PT_IDX(v_addr)];
     if (!(pte & VMM_PRESENT)) return;
