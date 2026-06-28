@@ -25,10 +25,10 @@ Development follows 10 core stages, each building on the last.
 | 4 | Main and boot partition file systems
 | 5 | Usermode stdlib (mussl or glibc)
 | 6 | System-call layer
-| 7 | Running Software (bash, Doom, etc.) | Upcoming |
-| 8 | GUI | Upcoming |
+| 7 | Running Software (bash, Doom, etc.) |  |
+| 8 | GUI |  |
 | 9 | Device drivers (sound, networking card)
-| 10 | Networking | Upcoming |
+| 10 | Networking |  |
 
 ---
 
