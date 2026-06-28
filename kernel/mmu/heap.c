@@ -2,10 +2,6 @@
 #include "dlmalloc_config.h"   /* must come before dlmalloc.c is included */
 #include "dlmalloc.c"          /* compile dlmalloc as part of this TU     */
 
-/* ═══════════════════════════════════════════════════════════════════════════
- * heap_t  –  low-level sbrk-style engine
- * ═══════════════════════════════════════════════════════════════════════════ */
-
 void heap_init(heap_t *heap, uintptr_t base) {
     heap->base    = base;
     heap->curr    = base;
@@ -14,7 +10,7 @@ void heap_init(heap_t *heap, uintptr_t base) {
 }
 
 /*
- * heap_sbrk
+ * heap_sbrk/ heapafus v2
  *
  * inc > 0 : extend the break, map new pages as needed.
  *           Returns the OLD break (dlmalloc uses the returned pointer as the
@@ -69,9 +65,6 @@ void *heap_sbrk(heap_t *heap, int64_t inc) {
     return (void *)new_curr;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
- * Kernel heap  –  one global mspace built on top of the kernel heap_t
- * ═══════════════════════════════════════════════════════════════════════════ */
 
 static heap_t  k_heap;
 static mspace  k_mspace;

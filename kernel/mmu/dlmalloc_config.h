@@ -33,10 +33,14 @@
 #define USE_SPIN_LOCKS          0
 
 /* ── Disable Win32 paths ────────────────────────────────────────────────── */
-#define WIN32                   0
-#ifndef _WIN32
-/* make sure dlmalloc's #ifdef _WIN32 branches are never taken */
-#endif
+/*
+ * dlmalloc uses #ifdef WIN32 / #ifdef _WIN32, not #if WIN32.
+ * Defining WIN32 as 0 still satisfies #ifdef so the Windows branch fires.
+ * We must #undef all three symbols so every #ifdef WIN32 is skipped.
+ */
+#undef WIN32
+#undef _WIN32
+#undef _WIN32_WCE
 
 /* ── Abort / assert: route to our panic ────────────────────────────────── */
 #include "../idt/idt.h"             /* for KPANIC                          */

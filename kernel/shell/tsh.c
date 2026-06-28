@@ -184,38 +184,184 @@ void cmd_lsh(int argc, char **argv) {
 }
 
 void cmd_meminfo(int argc, char **argv) {
-
+    (void)argc; (void)argv;
+ 
     putstr("===============\n");
     putstr("= ToastOS MMU =\n");
-    putstr("===============\n");
-    
-    const pmm_header_t *header = get_pmm_header();
-
-    if (!header) {
-        printf("[PMM] Error: Header pointer is NULL\n");
+    putstr("===============\n\n");
+ 
+    const pmm_header_t *pmm = get_pmm_header();
+    if (!pmm) {
+        putstr("[PMM] Error: header is NULL\n");
         return;
     }
+ 
+    uint64_t total_mib = (pmm->max_frames   * PAGE_SIZE) / (1024 * 1024);
+    uint64_t free_mib  = (pmm->free_frames  * PAGE_SIZE) / (1024 * 1024);
+    uint64_t used_mib  = total_mib - free_mib;
+ 
+    putstr("==================== PMM ====================\n");
+    printf("  HHDM base:              0x%016llx\n", pmm->hhdm_base);
+    printf("  Kernel phys base:       0x%016llx\n", pmm->kernel_phys_base);
+    printf("  Kernel virt base:       0x%016llx\n", pmm->kernel_virt_base);
+    printf("  Kernel phys end:        0x%016llx\n", pmm->kernel_phys_end);
+    putstr("  ---------------------------------------------\n");
+    printf("  Bitmap phys addr:       0x%016llx\n", pmm->bitmap_phys);
+    printf("  Bitmap virt ptr:        0x%016llx\n", (uint64_t)pmm->b_map);
+    printf("  Bitmap size:            %llu bytes\n",  pmm->bitmap_bytes);
+    putstr("  ---------------------------------------------\n");
+    printf("  First alloc frame:      %llu\n",        pmm->alloc_start_frame);
+    printf("  Total frames:           %llu\n",        pmm->max_frames);
+    printf("  Free frames:            %llu\n",        pmm->free_frames);
+    printf("  Memory:                 %llu MiB total  %llu MiB used  %llu MiB free\n",
+           total_mib, used_mib, free_mib);
+    putstr("==============================================\n\n");
+ 
+    putstr("==================== VMM ====================\n");
+    printf("  Active PML4 (CR3):      0x%016llx\n", get_pml4_phys());
+    putstr("  Page table levels:      4  (PML4 -> PDPT -> PD -> PT)\n");
+    putstr("  Page size:              4 KiB\n");
+    putstr("  Table walk:             HHDM\n");
+    putstr("==============================================\n\n");
+ 
+    heap_t *heap = k_heap_status();
+    putstr("================= Kernel Heap ================\n");
+    if (!heap) {
+        putstr("  [not initialised]\n");
+    } else {
+        uint64_t committed = heap->curr    - heap->base;
+        uint64_t mapped    = heap->mapped  - heap->base;
+ 
+        printf("  Heap base:              0x%016llx\n", heap->base);
+        printf("  Current break:          0x%016llx\n", heap->curr);
+        printf("  Mapped up to:           0x%016llx\n", heap->mapped);
+        printf("  Committed (break):      %llu bytes  (%llu KiB)\n",
+               committed, committed / 1024);
+        printf("  Mapped (pages):         %llu bytes  (%llu KiB)\n",
+               mapped, mapped / 1024);
+        printf("  Slack (mapped-commit):  %llu bytes\n",
+               heap->mapped - heap->curr);
+    }
+    putstr("==============================================\n");
+}
 
-    printf("==================== PMM ====================\n");
-    printf("HHDM Base Address:       0x%lx\n", header->hhdm_base);
-    printf("Kernel Physical Base:    0x%lx\n", header->kernel_phys_base);
-    printf("Kernel Virtual Base:     0x%lx\n", header->kernel_virt_base);
-    printf("Kernel Physical End:     0x%lx\n", header->kernel_phys_end);
-    printf("---------------------------------------------------------\n");
-    printf("Bitmap Physical Address: 0x%lx\n", header->bitmap_phys);
-    printf("Bitmap Virtual Pointer:  0x%lx\n", (uint64_t)header->b_map);
-    printf("Bitmap Size:             %lu bytes\n", header->bitmap_bytes);
-    printf("---------------------------------------------------------\n");
-    printf("First Allocatable Frame: %lu\n", header->alloc_start_frame);
-    printf("Total Frames Tracked:    %lu\n", header->max_frames);
-    printf("Free Frames Remaining:   %lu\n", header->free_frames);
-    
-    uint64_t total_mib = (header->max_frames * 4096) / (1024 * 1024);
-    uint64_t free_mib = (header->free_frames * 4096) / (1024 * 1024);
-    printf("Memory Managed:          %lu MiB / %lu MiB free\n", free_mib, total_mib);
-    printf("=========================================================\n");
 
-    putstr("\n");
+/* ── cmd_heaptest ────────────────────────────────────────────────────────────
+ *
+ * Exercises kmalloc/kfree in a few stages so you can watch the heap grow
+ * and shrink in meminfo:
+ *
+ *   Stage 1 – small allocs:  allocate 8 pointers of increasing size,
+ *             write a canary value, read it back, free them all.
+ *
+ *   Stage 2 – large alloc:  one 64 KiB block, fill with 0xAB, verify,
+ *             free it.
+ *
+ *   Stage 3 – realloc:  alloc 64 bytes, realloc to 256, check the old
+ *             data survived.
+ *
+ *   Stage 4 – calloc:  make sure the returned memory is actually zeroed.
+ */
+void cmd_heaptest(int argc, char **argv) {
+    (void)argc; (void)argv;
+ 
+    putstr("\n[heaptest] starting...\n");
+ 
+    /* ── Stage 1: small allocs ── */
+    putstr("[heaptest] stage 1: small allocs\n");
+    void *ptrs[8];
+    int   failed = 0;
+ 
+    for (int i = 0; i < 8; i++) {
+        size_t sz = (size_t)(16 << i);   /* 16, 32, 64, … 2048 bytes */
+        ptrs[i] = kmalloc(sz);
+ 
+        if (!ptrs[i]) {
+            printf("  [FAIL] kmalloc(%llu) returned NULL\n", (uint64_t)sz);
+            failed++;
+            continue;
+        }
+ 
+        /* Write a canary: every byte = low 8 bits of index */
+        uint8_t *p = (uint8_t *)ptrs[i];
+        for (size_t b = 0; b < sz; b++) p[b] = (uint8_t)i;
+ 
+        /* Verify */
+        int corrupt = 0;
+        for (size_t b = 0; b < sz; b++)
+            if (p[b] != (uint8_t)i) { corrupt = 1; break; }
+ 
+        if (corrupt) {
+            printf("  [FAIL] canary mismatch at ptrs[%d] (sz=%llu)\n",
+                   i, (uint64_t)sz);
+            failed++;
+        } else {
+            printf("  [ok]   kmalloc(%llu) -> 0x%llx\n",
+                   (uint64_t)sz, (uint64_t)ptrs[i]);
+        }
+    }
+ 
+    for (int i = 0; i < 8; i++)
+        if (ptrs[i]) kfree(ptrs[i]);
+ 
+    putstr(failed ? "[heaptest] stage 1: FAILED\n"
+                  : "[heaptest] stage 1: passed\n");
+ 
+    /* ── Stage 2: large alloc ── */
+    putstr("[heaptest] stage 2: large alloc (64 KiB)\n");
+    size_t   large_sz = 64 * 1024;
+    uint8_t *large    = (uint8_t *)kmalloc(large_sz);
+ 
+    if (!large) {
+        putstr("  [FAIL] kmalloc(64K) returned NULL\n");
+    } else {
+        for (size_t i = 0; i < large_sz; i++) large[i] = 0xAB;
+ 
+        int ok = 1;
+        for (size_t i = 0; i < large_sz; i++)
+            if (large[i] != 0xAB) { ok = 0; break; }
+ 
+        printf("  [%s]  64 KiB fill+verify\n", ok ? "ok  " : "FAIL");
+        kfree(large);
+    }
+ 
+    /* ── Stage 3: realloc ── */
+    putstr("[heaptest] stage 3: realloc\n");
+    uint8_t *r = (uint8_t *)kmalloc(64);
+    if (!r) {
+        putstr("  [FAIL] initial kmalloc for realloc returned NULL\n");
+    } else {
+        for (int i = 0; i < 64; i++) r[i] = (uint8_t)i;
+ 
+        r = (uint8_t *)krealloc(r, 256);
+        if (!r) {
+            putstr("  [FAIL] krealloc returned NULL\n");
+        } else {
+            int ok = 1;
+            for (int i = 0; i < 64; i++)
+                if (r[i] != (uint8_t)i) { ok = 0; break; }
+ 
+            printf("  [%s]  data survived realloc to 256 bytes\n",
+                   ok ? "ok  " : "FAIL");
+            kfree(r);
+        }
+    }
+ 
+    /* ── Stage 4: calloc zeroing ── */
+    putstr("[heaptest] stage 4: calloc zeroing\n");
+    uint8_t *z = (uint8_t *)kcalloc(128, 1);
+    if (!z) {
+        putstr("  [FAIL] kcalloc returned NULL\n");
+    } else {
+        int ok = 1;
+        for (int i = 0; i < 128; i++)
+            if (z[i] != 0) { ok = 0; break; }
+ 
+        printf("  [%s]  128 bytes zeroed by calloc\n", ok ? "ok  " : "FAIL");
+        kfree(z);
+    }
+ 
+    putstr("[heaptest] done.\n\n");
 }
 
 void cmd_exit(int argc, char **argv) {

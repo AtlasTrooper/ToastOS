@@ -43,6 +43,10 @@ ISO        = $(BUILD)/toast.iso
 # Source discovery
 # ========================
 C_SRCS    := $(shell find kernel -type f -name '*.c' | LC_ALL=C sort)
+# dlmalloc.c is #included directly by heap.c as a single translation unit
+# so the dlmalloc_config.h defines are in scope before any dlmalloc code.
+# Compiling it standalone would miss those defines and break the build.
+C_SRCS    := $(filter-out kernel/mmu/dlmalloc.c, $(C_SRCS))
 ASM_SRCS  := $(shell find kernel -type f \( -name '*.s' -o -name '*.S' \) | LC_ALL=C sort)
 NASM_SRCS := $(shell find kernel -type f -name '*.asm' | LC_ALL=C sort)
 PSF_SRCS  := $(shell find kernel -type f -name '*.psf' | LC_ALL=C sort)
