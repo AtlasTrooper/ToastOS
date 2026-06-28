@@ -106,6 +106,11 @@ At the moment only the memory management hasn't been fully ported but I am almos
 | Resource | Description | URL |
 |----------|-------------|-----|
 | `printf` by Scott Cosentino | stdio implementation used as reference before being modified for 64 bit | https://gitlab.com/olivestem/Jazz2-0/-/blob/main/src/stdlib/stdio.c |
+| `Malloc` by Doug Lea | I chose to use dlmalloc for general puropose storage allocation as I heard it was quite portable and efficient, not to mention simple to port. |
+
+https://gee.cs.oswego.edu/dl/html/malloc.html
+
+ https://gee.cs.oswego.edu/pub/misc/malloc.c |
 
 ---
 
@@ -114,3 +119,4 @@ At the moment only the memory management hasn't been fully ported but I am almos
 - **Author:** Tomer Wiesel
 - Initial `printf` implementation by Scott Cosentino. Has since been modified for 64 bit
 - OSDev community for documentation and tutorials
+- Doug Lea's malloc
