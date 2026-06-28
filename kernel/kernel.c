@@ -44,7 +44,6 @@ void _start(void) {
     initIDT();
     init_timer();
     kb_init();
-    
     init_pmm();
 
     init_shell();
