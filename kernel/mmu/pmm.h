@@ -13,10 +13,6 @@
 #define PAGE_SHIFT      12              /* log2(PAGE_SIZE), useful later */
 #define PAGE_MASK       (~(PAGE_SIZE - 1))
 
-#define BITMAP_SET(bit)   (pmm.b_map[(bit) >> 6] |=  (1ULL << ((bit) & 63)))
-#define BITMAP_CLEAR(bit) (pmm.b_map[(bit) >> 6] &= ~(1ULL << ((bit) & 63)))
-#define BITMAP_TEST(bit)  (pmm.b_map[(bit) >> 6] &   (1ULL << ((bit) & 63)))
-
 typedef struct {
     uint64_t  hhdm_base;
     uint64_t  kernel_phys_base;

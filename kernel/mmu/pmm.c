@@ -48,7 +48,20 @@ static void alloc_frame(uint64_t frame_addr) {
 }
 
 uint64_t pmm_alloc(void) {
-   
+   for (size_t i = 0; i < pmm.bitmap_bytes; i++) {
+        if (pmm.b_map[i] == 0xFF) continue; 
+
+        for (int bit = 0; bit < 8; bit++) {
+            if (!(pmm.b_map[i] & (1 << bit))) {
+                uint64_t frame_idx = (i * 8) + bit;
+                uint64_t phys_addr = frame_idx * 4096;
+                
+                alloc_frame(phys_addr);
+                return phys_addr;
+            }
+        }
+    }
+    return 0; // Out of memory!
 }
 
 void pmm_free(uint64_t paddr) {
@@ -110,13 +123,20 @@ void init_pmm(void) {
     for (size_t i = 0; i < pmm.bitmap_bytes; i++) {
         pmm.b_map[i] = 0xFF;
     }
+
+    uint64_t first_frame_found = 0;
+    int set_first_frame = 0;
+
     //free usable memory
      for (size_t i = 0; i < memmap->entry_count; i++) {
         struct limine_memmap_entry *ent = memmap->entries[i];
         if (ent->type == LIMINE_MEMMAP_USABLE) {
            uint64_t start_addr = ent->base;
            uint64_t end_addr = start_addr + ent->length;
-
+           if (!set_first_frame) {
+                pmm.alloc_start_frame = ent->base;
+                set_first_frame = 1;
+           }
            for(uint64_t addr = start_addr; addr < end_addr; addr += PAGE_SIZE) {
                 free_frame(addr);
            }
