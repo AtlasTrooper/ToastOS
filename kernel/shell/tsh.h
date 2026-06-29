@@ -26,7 +26,7 @@ void cmd_darud (int argc, char **argv);
 void cmd_lsh   (int argc, char **argv);
 void cmd_meminfo (int argc, char **argv);
 void cmd_heaptest(int argc, char **argv);
-
+void cmd_memmap(int argc, char **argv);
 void cmd_exit  (int argc, char **argv);
 
 void print_banner(void);
@@ -47,5 +47,8 @@ static const command_t commands[] = {
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
     {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
     {"heaptest", cmd_heaptest, "Runs kmalloc suite and tests their functionality"},
+    { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };
+
+const char *memmap_type_str(uint64_t type);

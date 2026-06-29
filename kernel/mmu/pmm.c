@@ -15,13 +15,8 @@ static volatile struct limine_kernel_address_request kaddr_request = {
 
 static pmm_header_t pmm;
 
-const pmm_header_t *get_pmm_header(void) {
-    return &pmm;
-}
-
-uint64_t get_hhdm(void) {
-    return pmm.hhdm_base;
-}
+const pmm_header_t *get_pmm_header(void) { return &pmm; }
+uint64_t get_hhdm(void)                  { return pmm.hhdm_base; }
 
 void *get_virt_addr(uint64_t paddr) {
     return (void *)(paddr + pmm.hhdm_base);
@@ -29,6 +24,10 @@ void *get_virt_addr(uint64_t paddr) {
 
 uint64_t get_phys_addr(void *vaddr) {
     return (uint64_t)vaddr - pmm.hhdm_base;
+}
+
+struct limine_memmap_response *get_memmap(void) {
+    return memmap_request.response;
 }
 
 uint64_t alloc_frame(void) {
@@ -47,28 +46,29 @@ uint64_t alloc_frame(void) {
         pmm.free_frames--;
         return frame << PAGE_SHIFT;
     }
-    return 0; /* OOM */
+    return 0;
 }
 
 void free_frame(uint64_t paddr) {
     uint64_t frame = paddr >> PAGE_SHIFT;
-    if (BITMAP_TEST(frame)) {
+    if (frame < pmm.max_frames && BITMAP_TEST(frame)) {
         BITMAP_CLEAR(frame);
         pmm.free_frames++;
     }
 }
 
 void init_pmm(void) {
-    if (hhdm_request.response == NULL) return; /* TODO: panic */
+    if (hhdm_request.response == NULL) KPANIC(NULL, "HHDM BAD RESPONSE");
     pmm.hhdm_base = hhdm_request.response->offset;
 
-    if (kaddr_request.response == NULL) return; /* TODO: panic */
+    if (kaddr_request.response == NULL) KPANIC(NULL, "KADDR BAD RESPONSE");
     pmm.kernel_phys_base = kaddr_request.response->physical_base;
     pmm.kernel_virt_base = kaddr_request.response->virtual_base;
 
     struct limine_memmap_response *memmap = memmap_request.response;
-    if (memmap == NULL) return; /* TODO: panic */
+    if (memmap == NULL) KPANIC(NULL, "MEMMAP BAD RESPONSE");
 
+    //Kernel size calculation
     pmm.kernel_phys_end = 0;
     for (uint64_t i = 0; i < memmap->entry_count; i++) {
         struct limine_memmap_entry *ent = memmap->entries[i];
@@ -77,62 +77,15 @@ void init_pmm(void) {
             if (end > pmm.kernel_phys_end) pmm.kernel_phys_end = end;
         }
     }
-    if (pmm.kernel_phys_end == 0) return; /* TODO: panic */
+    if (pmm.kernel_phys_end == 0) KPANIC(NULL, "BAD KERNEL END");
 
-    uint64_t highest = 0;
-    for (uint64_t i = 0; i < memmap->entry_count; i++) {
-        struct limine_memmap_entry *ent = memmap->entries[i];
-        if (ent->type != LIMINE_MEMMAP_USABLE) continue;
-        uint64_t top = ent->base + ent->length;
-        if (top > highest) highest = top;
-    }
+    //Bitmap size calculation (Right after kernel)
 
-    pmm.max_frames   = highest >> PAGE_SHIFT;
-    pmm.bitmap_phys  = CEIL(pmm.kernel_phys_end, PAGE_SIZE);
-    pmm.bitmap_bytes = CEIL((pmm.max_frames + 63) >> 3, PAGE_SIZE);
+    // for()
 
-    pmm.b_map = (uint64_t *)get_virt_addr(pmm.bitmap_phys);
-    memset(pmm.b_map, 0xFF, pmm.bitmap_bytes);
+    pmm.bitmap_phys = CEIL(pmm.kernel_phys_end, PAGE_SIZE);
+    pmm.b_map = (uint64_t*)get_virt_addr(pmm.bitmap_phys);
 
-    uint64_t alloc_phys      = CEIL(pmm.bitmap_phys + pmm.bitmap_bytes, PAGE_SIZE);
-    pmm.alloc_start_frame    = alloc_phys >> PAGE_SHIFT;
-    pmm.free_frames          = 0;
+    // pmm.bitmap_bytes = CEIL()
 
-    for (uint64_t i = 0; i < memmap->entry_count; i++) {
-        struct limine_memmap_entry *ent = memmap->entries[i];
-        if (ent->type != LIMINE_MEMMAP_USABLE) continue;
-
-        uint64_t frame       = ent->base >> PAGE_SHIFT;
-        uint64_t frame_count = ent->length >> PAGE_SHIFT;
-
-        if (frame < pmm.alloc_start_frame) {
-            uint64_t skip = pmm.alloc_start_frame - frame;
-            if (skip >= frame_count) continue;
-            frame       += skip;
-            frame_count -= skip;
-        }
-
-        pmm.free_frames += frame_count;
-
-        uint64_t word = frame >> 6;
-        uint64_t bit  = frame & 63;
-
-        if (bit != 0) {
-            uint64_t count = 64 - bit;
-            if (count > frame_count) count = frame_count;
-            uint64_t mask = ((count < 64) ? (1ULL << count) - 1ULL : ~0ULL) << bit;
-            pmm.b_map[word++] &= ~mask;
-            frame_count       -= count;
-        }
-
-        uint64_t full_words = frame_count >> 6;
-        memset(&pmm.b_map[word], 0x00, full_words * sizeof(uint64_t));
-        word        += full_words;
-        frame_count &= 63;
-
-        if (frame_count != 0) {
-            uint64_t mask = (1ULL << frame_count) - 1ULL;
-            pmm.b_map[word] &= ~mask;
-        }
-    }
 }

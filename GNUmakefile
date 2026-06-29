@@ -26,7 +26,7 @@ LDFLAGS = -m elf_x86_64 -nostdlib -static \
 	-z max-page-size=0x1000 --gc-sections \
 	-T linker.ld
 
-QEMU_FLAGS = -serial stdio -m 256M
+QEMU_FLAGS = -serial stdio -m 512M
 
 BOCHS      = bochs
 BOCHSRC    = bochsrc.txt

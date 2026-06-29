@@ -6,6 +6,8 @@
 #include "../stdlib/stdio.h"
 #include "memory.h"
 #include "../util.h"
+#include "../idt/idt.h"
+#include "../shell/tsh.h"
 
 #define PAGE_SIZE       0x1000          /* 4096 bytes                    */
 #define PAGE_SHIFT      12              /* log2(PAGE_SIZE), useful later */
@@ -36,3 +38,5 @@ uint64_t  get_phys_addr(void *vaddr);
 uint64_t  alloc_frame(void);
 void      free_frame(uint64_t paddr);
 void      init_pmm(void);
+
+struct limine_memmap_response *get_memmap(void);

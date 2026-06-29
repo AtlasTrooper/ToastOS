@@ -364,6 +364,60 @@ void cmd_heaptest(int argc, char **argv) {
     putstr("[heaptest] done.\n\n");
 }
 
+
+const char *memmap_type_str(uint64_t type) {
+    switch (type) {
+        case 0: return "Usable";
+        case 1: return "Reserved";
+        case 2: return "ACPI Reclaimable";
+        case 3: return "ACPI NVS";
+        case 4: return "Bad Memory";
+        case 5: return "Bootloader Reclaimable";
+        case 6: return "Kernel and Modules";
+        case 7: return "Framebuffer";
+        default: return "Unknown";
+    }
+}
+ 
+void cmd_memmap(int argc, char **argv) {
+    (void)argc; (void)argv;
+ 
+    const pmm_header_t *pmm = get_pmm_header();
+    if (!pmm) { putstr("[memmap] PMM not initialised\n"); return; }
+ 
+    struct limine_memmap_response *memmap = get_memmap();
+    if (!memmap) { putstr("[memmap] no Limine memmap response\n"); return; }
+ 
+    putstr("========================================================\n");
+    putstr(" #   Base                 Length               Type\n");
+    putstr("========================================================\n");
+ 
+    uint64_t total_usable = 0;
+
+    for (uint64_t i = 0; i < memmap->entry_count; i++) {
+        struct limine_memmap_entry *ent = memmap->entries[i];
+ 
+        uint64_t mib = ent->length / (1024 * 1024);
+        uint64_t kib = (ent->length % (1024 * 1024)) / 1024;
+ 
+        printf(" [%llu] 0x%016llx   0x%016llx   %s",
+               i, ent->base, ent->length, memmap_type_str(ent->type));
+ 
+        if (mib > 0)
+            printf("  (%llu MiB)\n", mib);
+        else
+            printf("  (%llu KiB)\n", kib);
+ 
+        if (ent->type == LIMINE_MEMMAP_USABLE)
+            total_usable += ent->length;
+    }
+ 
+    putstr("========================================================\n");
+    printf(" Total usable: %llu MiB (%llu bytes)\n",
+           total_usable / (1024 * 1024), total_usable);
+    putstr("========================================================\n");
+}
+
 void cmd_exit(int argc, char **argv) {
     (void)argc; (void)argv;
     putstr("Halting CPU — adios amigo!\n");
