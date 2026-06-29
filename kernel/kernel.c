@@ -45,7 +45,7 @@ void _start(void) {
     init_timer();
     kb_init();
     init_pmm();
-    //init_kheap();
+    init_kheap();
     init_shell();
 
 }
