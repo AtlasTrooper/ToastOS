@@ -208,7 +208,7 @@ void cmd_meminfo(int argc, char **argv) {
     putstr("  ---------------------------------------------\n");
     printf("  Bitmap phys addr:       0x%016llx\n", pmm->bitmap_phys);
     printf("  Bitmap virt ptr:        0x%016llx\n", (uint64_t)pmm->b_map);
-    printf("  Bitmap size:            %llu bytes\n",  pmm->bitmap_bytes);
+    printf("  Bitmap size:            %lu Bytes\n",  pmm->bitmap_bytes);
     putstr("  ---------------------------------------------\n");
     printf("  First alloc frame:      %llu\n",        pmm->alloc_start_frame);
     printf("  Total frames:           %llu\n",        pmm->max_frames);

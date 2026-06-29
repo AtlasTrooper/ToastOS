@@ -34,7 +34,7 @@ void *heap_sbrk(heap_t *heap, long inc) {
         uintptr_t new_curr = heap->curr + (uint64_t)inc;
 
         while (heap->mapped < new_curr) {
-            uint64_t frame = alloc_frame();
+            uint64_t frame = pmm_alloc();
             if (frame == 0) {
                 /* OOM — back out: unmap what we mapped this call */
                 for (uintptr_t a = old_curr; a < heap->mapped; a += PAGE_SIZE)

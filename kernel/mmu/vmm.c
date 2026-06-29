@@ -8,7 +8,7 @@ static inline uint64_t *pte_to_virt(uint64_t entry) {
 }
 
 static uint64_t alloc_table(void) {
-    uint64_t phys = alloc_frame();
+    uint64_t phys = pmm_alloc();
     if (phys == 0) return 0;
 
     uint64_t *virt = (uint64_t *)get_virt_addr(phys);
@@ -108,7 +108,7 @@ void unmap_page(uint64_t v_addr) {
     uint64_t  pte = pt[PT_IDX(v_addr)];
     if (!(pte & VMM_PRESENT)) return;
 
-    free_frame(pte & VMM_ADDR_MASK);
+    pmm_free(pte & VMM_ADDR_MASK);
     pt[PT_IDX(v_addr)] = 0;
 
     invalidate_page(v_addr);
