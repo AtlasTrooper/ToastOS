@@ -1,73 +1,83 @@
 #pragma once
 
-/* ═══════════════════════════════════════════════════════════════════════════
- * dlmalloc_config.h
- *
- * Strips dlmalloc down to a bare-metal kernel allocator:
- *   - No OS calls (no sbrk, no mmap, no Win32, no pthreads)
- *   - No C stdlib (no errno, no fprintf, no abort)
- *   - mspace API enabled so each heap_t gets its own arena
- *   - Our heap_sbrk() is the sole memory source
- * ═══════════════════════════════════════════════════════════════════════════
- */
+/*
+Config file for dlmalloc
+*/
 
-/* ── Kill every OS / platform path ─────────────────────────────────────── */
-#define LACKS_UNISTD_H          1   /* no unistd.h                         */
-#define LACKS_FCNTL_H           1   /* no fcntl.h                          */
-#define LACKS_SYS_PARAM_H       1   /* no sys/param.h                      */
-#define LACKS_SYS_MMAN_H        1   /* no mmap                             */
-#define LACKS_STRINGS_H         1   /* no strings.h                        */
-#define LACKS_STRING_H          0   /* we DO have string.h (memset/memcpy) */
-#define LACKS_SYS_TYPES_H       1   /* no sys/types.h                      */
-#define LACKS_ERRNO_H           1   /* no errno                            */
-#define LACKS_STDLIB_H          1   /* no stdlib.h                         */
-#define LACKS_STDDEF_H          0   /* we have stddef.h (size_t etc.)      */
-#define LACKS_TIME_H            1   /* no time.h                           */
+#define LACKS_UNISTD_H          1
+#define LACKS_FCNTL_H           1
+#define LACKS_SYS_PARAM_H       1
+#define LACKS_SYS_MMAN_H        1
+#define LACKS_STRINGS_H         1
+#define LACKS_STRING_H          0   /* we have string.h (memset/memcpy)    */
+#define LACKS_SYS_TYPES_H       1
+#define LACKS_ERRNO_H           1
+#define LACKS_STDLIB_H          1
+#define LACKS_STDDEF_H          0   /* we have stddef.h                    */
+#define LACKS_TIME_H            1
 
-/* ── Disable mmap entirely ──────────────────────────────────────────────── */
 #define HAVE_MMAP               0
 #define HAVE_MREMAP             0
 
-/* ── Disable threading ──────────────────────────────────────────────────── */
-#define USE_LOCKS               0   /* single-threaded kernel for now      */
+#define USE_LOCKS               0
 #define USE_SPIN_LOCKS          0
 
-/* ── Disable Win32 paths ────────────────────────────────────────────────── */
-/*
- * dlmalloc uses #ifdef WIN32 / #ifdef _WIN32, not #if WIN32.
- * Defining WIN32 as 0 still satisfies #ifdef so the Windows branch fires.
- * We must #undef all three symbols so every #ifdef WIN32 is skipped.
- */
 #undef WIN32
 #undef _WIN32
 #undef _WIN32_WCE
 
-/* ── Abort / assert: route to our panic ────────────────────────────────── */
-#include "../idt/idt.h"             /* for KPANIC                          */
-#define ABORT                   KPANIC(NULL, "dlmalloc: internal abort")
+/* ── errno stub ─────────────────────────────────────────────────────────── */
+/*
+ * dlmalloc sets errno = ENOMEM on OOM.  We don't have a real errno so we
+ * give it a throwaway global it can write to harmlessly.
+ */
+#define ENOMEM  12              /* standard POSIX value                    */
+#define EINVAL  22
+static int dlmalloc_errno;
+#define errno dlmalloc_errno
+
+/* ── fprintf / stderr stub ──────────────────────────────────────────────── */
+/*
+ * dlmalloc calls fprintf(stderr, ...) for internal corruption messages.
+ * We redirect stderr writes to printf and then panic.
+ */
+#include "../stdlib/stdio.h"
+#include "../idt/idt.h"
+#define stderr  ((void*)0)      /* satisfies the declaration; never used   */
+#define fprintf(stream, fmt, ...) \
+    do { printf(fmt, ##__VA_ARGS__); KPANIC(NULL, "dlmalloc internal error"); } while(0)
+
+/* ── abort → panic ──────────────────────────────────────────────────────── */
+#define ABORT                   KPANIC(NULL, "dlmalloc: abort")
 #define ABORT_ON_ASSERT_FAILURE 1
 
-/* ── No footers (smaller allocations, fine for kernel) ─────────────────── */
-#define FOOTERS                 0
-
-/* ── mspace: one arena per heap_t ──────────────────────────────────────── */
-#define ONLY_MSPACES            1   /* expose only mspace_malloc etc.      */
+/* ── mspace ─────────────────────────────────────────────────────────────── */
+#define ONLY_MSPACES            1
 #define MSPACES                 1
 
+/* ── MORECORE — points to the kernel heap's sbrk ───────────────────────── */
 /*
- * MORECORE is intentionally NOT defined here.
- * Each mspace is created with create_mspace_with_base() so dlmalloc never
- * calls MORECORE at all — it only uses the memory we hand it up front, and
- * calls our mspace_more callback when it needs to grow.
- * See heap.c for how we wire heap_sbrk into the mspace.
+ * dlmalloc 2.8.6 has no per-mspace grow callback.  When an mspace created
+ * with create_mspace_with_base() runs out of its initial memory it calls
+ * the global MORECORE to get more.  We define MORECORE as a thin wrapper
+ * around heap_sbrk() operating on a single pointer (g_morecore_heap) that
+ * heap.c sets before creating the mspace.
+ *
+ * For a single kernel mspace this is fine.  When you add user-process heaps
+ * each process will create its own mspace from a pre-sized region and you
+ * can switch g_morecore_heap during context switches if needed.
  */
+struct heap_t;                          /* forward declaration              */
+extern struct heap_t *g_morecore_heap;  /* set by heap.c before use        */
+void *heap_sbrk(struct heap_t *heap, long inc);
 
-/* ── Alignment ──────────────────────────────────────────────────────────── */
-#define MALLOC_ALIGNMENT        16  /* 16-byte aligned, good for SSE/x86-64 */
+#define MORECORE(size)  heap_sbrk(g_morecore_heap, (long)(size))
+#define MORECORE_CONTIGUOUS 1   /* our sbrk always returns contiguous mem  */
+#define MORECORE_CANNOT_TRIM 0
 
-/* ── Trim / consolidation thresholds ───────────────────────────────────── */
-#define DEFAULT_TRIM_THRESHOLD  (256 * 1024)   /* 256 KB                   */
-#define DEFAULT_MMAP_THRESHOLD  (256 * 1024)   /* irrelevant (mmap=0)      */
+#define MALLOC_ALIGNMENT        16
 
-/* ── Diagnostics ────────────────────────────────────────────────────────── */
+#define DEFAULT_TRIM_THRESHOLD  (256 * 1024)
+#define DEFAULT_MMAP_THRESHOLD  (256 * 1024)   /* irrelevant, mmap=0       */
+
 #define DEBUG                   0   /* flip to 1 when debugging the heap   */

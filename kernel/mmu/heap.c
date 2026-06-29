@@ -2,6 +2,9 @@
 #include "dlmalloc_config.h"   /* must come before dlmalloc.c is included */
 #include "dlmalloc.c"          /* compile dlmalloc as part of this TU     */
 
+
+heap_t *g_morecore_heap = NULL;
+
 void heap_init(heap_t *heap, uintptr_t base) {
     heap->base    = base;
     heap->curr    = base;
@@ -94,16 +97,13 @@ void init_kheap(void) {
 
     heap_init(&k_heap, base);
 
+    
+    /*so dlmalloc is able to call heap_sbrk with &k_heap*/
+    g_morecore_heap = &k_heap;
+
     /*
-     * Seed the mspace with an initial chunk so dlmalloc has something to
-     * work with immediately.  We give it one page; it will call k_mspace_more
-     * for anything larger.
-     *
-     * create_mspace_with_base(base, size, locked)
-     *   base  – pointer to pre-allocated memory dlmalloc can use right away
-     *   size  – how many bytes at `base` are available
-     *   locked – 0 (we set USE_LOCKS 0)
-     */
+    Seed with initial page
+    */
     void *seed = heap_sbrk(&k_heap, PAGE_SIZE);
     if (seed == (void *)-1) {
         KPANIC(NULL, "init_kheap: failed to allocate initial page");
@@ -114,11 +114,6 @@ void init_kheap(void) {
         KPANIC(NULL, "init_kheap: create_mspace_with_base failed");
     }
 
-    /*
-     * Register our grow callback so dlmalloc can extend the heap
-     * automatically.
-     */
-    mspace_set_more(k_mspace, k_mspace_more);
 }
 
 void *kmalloc(size_t size) {
