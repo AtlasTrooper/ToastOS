@@ -24,7 +24,7 @@ void heap_init(heap_t *heap, uintptr_t base) {
  *
  * inc = 0 : return current break unchanged.
  */
-void *heap_sbrk(heap_t *heap, int64_t inc) {
+void *heap_sbrk(heap_t *heap, long inc) {
     if (!heap || !heap->is_init) return (void *)-1;
 
     if (inc == 0) return (void *)heap->curr;

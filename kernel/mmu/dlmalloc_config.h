@@ -67,9 +67,9 @@ static int dlmalloc_errno;
  * each process will create its own mspace from a pre-sized region and you
  * can switch g_morecore_heap during context switches if needed.
  */
-struct heap_t;                          /* forward declaration              */
-extern struct heap_t *g_morecore_heap;  /* set by heap.c before use        */
-void *heap_sbrk(struct heap_t *heap, long inc);
+typedef struct heap_t;                          /* forward declaration              */
+extern heap_t *g_morecore_heap;  /* set by heap.c before use        */
+void *heap_sbrk(heap_t *heap, long inc);
 
 #define MORECORE(size)  heap_sbrk(g_morecore_heap, (long)(size))
 #define MORECORE_CONTIGUOUS 1   /* our sbrk always returns contiguous mem  */
