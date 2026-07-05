@@ -39,11 +39,11 @@ void *heap_sbrk(heap_t *heap, long inc) {
                 KPANIC(NULL, "OOM WHILE SBRK", NULL);
                 /* OOM — back out: unmap what we mapped this call */
                 for (uintptr_t a = old_curr; a < heap->mapped; a += PAGE_SIZE)
-                    unmap_page(a);
+                    vmm_unmap_page(a);
                 heap->mapped = old_curr;
                 return (void *)-1;
             }
-            map_page(heap->mapped, frame, VMM_FLAGS_KERNEL_RW);
+            vmm_map_page(heap->mapped, frame, VMM_FLAGS_KERNEL_RW);
             heap->mapped += PAGE_SIZE;
         }
 
@@ -62,7 +62,7 @@ void *heap_sbrk(heap_t *heap, long inc) {
 
     /* Unmap pages that are now fully above the new break */
     for (uintptr_t addr = new_mapped; addr < heap->mapped; addr += PAGE_SIZE)
-        unmap_page(addr);
+        vmm_unmap_page(addr);
 
     heap->curr   = new_curr;
     heap->mapped = new_mapped;
