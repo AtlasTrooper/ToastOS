@@ -24,4 +24,4 @@ void init_vmm();
 vmm_context_t* get_current_context(void);
 void vmm_switch_context(vmm_context_t *new_ctx);
 void vmm_map_page(vmm_context_t *ctx, uint64_t v_addr, uint64_t p_addr, uint64_t flags);
-void vmm_unmap_page(vmm_context_t, uint64_t v_addr);
+void vmm_unmap_page(vmm_context_t *ctx, uint64_t v_addr);

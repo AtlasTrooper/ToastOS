@@ -218,7 +218,7 @@ void cmd_meminfo(int argc, char **argv) {
     putstr("==============================================\n\n");
  
     putstr("==================== VMM ====================\n");
-    printf("  Active PML4 (CR3):      0x%016llx\n", get_pml4_phys());
+    printf("  Active PML4 (CR3):      0x%016llx\n", get_current_context());
     putstr("  Page table levels:      4  (PML4 -> PDPT -> PD -> PT)\n");
     putstr("  Page size:              4 KiB\n");
     putstr("  Table walk:             HHDM\n");
