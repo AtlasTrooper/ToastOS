@@ -36,6 +36,7 @@ void *heap_sbrk(heap_t *heap, long inc) {
         while (heap->mapped < new_curr) {
             uint64_t frame = pmm_alloc();
             if (frame == 0) {
+                KPANIC(NULL, "OOM WHILE SBRK", NULL);
                 /* OOM — back out: unmap what we mapped this call */
                 for (uintptr_t a = old_curr; a < heap->mapped; a += PAGE_SIZE)
                     unmap_page(a);
@@ -92,6 +93,7 @@ void init_kheap(void) {
      * just before it.  We add the HHDM offset to get a virtual address.
      */
     const pmm_header_t *pmm  = get_pmm_header();
+
     uintptr_t           base = (uintptr_t)get_virt_addr(
                                     pmm->alloc_start_frame << PAGE_SHIFT);
 

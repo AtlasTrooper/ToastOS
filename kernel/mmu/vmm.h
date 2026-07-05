@@ -1,34 +1,26 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include "memory.h"
 #include "pmm.h"
 
-#define VMM_PRESENT   (1ULL <<  0)
-#define VMM_WRITE     (1ULL <<  1)
-#define VMM_USER      (1ULL <<  2)
-#define VMM_PWT       (1ULL <<  3)
-#define VMM_PCD       (1ULL <<  4)
-#define VMM_ACCESSED  (1ULL <<  5)
-#define VMM_DIRTY     (1ULL <<  6)
-#define VMM_HUGE      (1ULL <<  7)   /* 2 MB (PD) or 1 GB (PDPT) pages */
-#define VMM_GLOBAL    (1ULL <<  8)
-#define VMM_NX        (1ULL << 63)   /* No-Execute                      */
+#define PTE_PRESENT   (1ULL <<  0)
+#define PTE_WRITE     (1ULL <<  1)
+#define PTE_USER      (1ULL <<  2)
 
 #define VMM_FLAGS_KERNEL_RW   (VMM_PRESENT | VMM_WRITE)
 #define VMM_FLAGS_KERNEL_RO   (VMM_PRESENT)
 #define VMM_FLAGS_USER_RW     (VMM_PRESENT | VMM_WRITE | VMM_USER)
 #define VMM_FLAGS_USER_RO     (VMM_PRESENT | VMM_USER)
 
-/* Mask to extract the physical address from an entry
- * (clears flag bits 0-11 and the NX bit 63)               */
-#define VMM_ADDR_MASK  0x000FFFFFFFFFF000ULL
+#define PTE_FRAME_MASK 0x000FFFFFFFFFF000ULL
 
-void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags);
+typedef struct vmm_context_t{
+    uint64_t *pml_virt;
+    uint64_t pml_phys;
+} vmm_context_t;
 
-void unmap_page(uint64_t v_addr);
-
-void invalidate_page(uint64_t addr);
-
-uint64_t get_pml4_phys(void);
-
-uint64_t virt_to_phys(uint64_t v_addr);
+void vmm_init(uint64_t *limine_pml4_virt);
+vmm_context_t* get_current_context(void);
+void vmm_switch_context(vmm_context_t *new_ctx);
+void vmm_map_page(vmm_context_t *ctx,    uint64_t v_addr, uint64_t p_addr);

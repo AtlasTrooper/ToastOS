@@ -1,138 +1,29 @@
 #include "vmm.h"
 
-/*
- * helper for my own convenience to get vaddrs for pte entries
- */
-static inline uint64_t *pte_to_virt(uint64_t entry) {
-    return (uint64_t *)get_virt_addr(entry & VMM_ADDR_MASK);
-}
+static uint64_t g_hhdm_off = 0;
+static vmm_context_t g_kernel_ctx;
 
-static uint64_t alloc_table(void) {
-    uint64_t phys = pmm_alloc();
-    if (phys == 0) return 0;
+void vmm_init(uint64_t *limine_pml4_virt) {
+    g_hhdm_off = get_hhdm();
+    uint64_t new_pml4_phys = pmm_alloc();
+    uint64_t *new_pml4_virt = (uint64_t*)get_virt_addr(new_pml4_phys);
 
-    uint64_t *virt = (uint64_t *)get_virt_addr(phys);
-    for (int i = 0; i < 512; i++) virt[i] = 0;
+    memset(new_pml4_virt, 0, PAGE_SIZE);
 
-    return phys;
-}
-
-/*
- * A 64-bit canonical virtual address split overview:
- *   [63:48]  sign extension (ignored by hardware)
- *   [47:39]  PML4 index   (9 bits)
- *   [38:30]  PDPT index   (9 bits)
- *   [29:21]  PD   index   (9 bits)
- *   [20:12]  PT   index   (9 bits)
- *   [11: 0]  page offset  (12 bits)
- */
-#define PML4_IDX(va)  (((va) >> 39) & 0x1FFULL)
-#define PDPT_IDX(va)  (((va) >> 30) & 0x1FFULL)
-#define PD_IDX(va)    (((va) >> 21) & 0x1FFULL)
-#define PT_IDX(va)    (((va) >> 12) & 0x1FFULL)
-
-void invalidate_page(uint64_t addr) {
-    asm volatile ("invlpg (%0)" :: "r"(addr) : "memory");
-}
-
-uint64_t get_pml4_phys(void) {
-    uint64_t cr3;
-    asm volatile ("mov %%cr3, %0" : "=r"(cr3));
-    return cr3 & VMM_ADDR_MASK;
-}
-
-/*
- * map_page
- * walk the 4 layer hierarchy with write enabled on non leafs for traversal
- */
-void map_page(uint64_t v_addr, uint64_t p_addr, uint64_t flags) {
-    v_addr &= VMM_ADDR_MASK;
-    p_addr &= VMM_ADDR_MASK;
-
-    //PML4
-    uint64_t *pml4 = (uint64_t *)get_virt_addr(get_pml4_phys());
-    uint64_t  pml4e = pml4[PML4_IDX(v_addr)];
-
-    if (!(pml4e & VMM_PRESENT)) {
-        uint64_t phys = alloc_table();
-        if (phys == 0) { /* OOM – leave unmapped */ return; }
-        pml4[PML4_IDX(v_addr)] = phys | flags | VMM_WRITE | VMM_PRESENT;
-        pml4e = pml4[PML4_IDX(v_addr)];
+    for (int i = 256; i < 512; i++) {
+        new_pml4_virt[i] = limine_pml4_virt[i];
     }
-
-    //PDPT
-    uint64_t *pdpt = pte_to_virt(pml4e);
-    uint64_t  pdpte = pdpt[PDPT_IDX(v_addr)];
-
-    if (!(pdpte & VMM_PRESENT)) {
-        uint64_t phys = alloc_table();
-        if (phys == 0) return;
-        pdpt[PDPT_IDX(v_addr)] = phys | flags | VMM_WRITE | VMM_PRESENT;
-        pdpte = pdpt[PDPT_IDX(v_addr)];
-    }
-
-    //PD
-    uint64_t *pd  = pte_to_virt(pdpte);
-    uint64_t  pde = pd[PD_IDX(v_addr)];
-
-    if (!(pde & VMM_PRESENT)) {
-        uint64_t phys = alloc_table();
-        if (phys == 0) return;
-        pd[PD_IDX(v_addr)] = phys | flags | VMM_WRITE | VMM_PRESENT;
-        pde = pd[PD_IDX(v_addr)];
-    }
-
-    //PT
-    uint64_t *pt = pte_to_virt(pde);
-    pt[PT_IDX(v_addr)] = p_addr | flags;
-
-    invalidate_page(v_addr);
+    g_kernel_ctx.pml_phys = new_pml4_phys;
+    g_kernel_ctx.pml_virt = new_pml4_virt;
+    vmm_switch_context(&g_kernel_ctx);
 }
 
-void unmap_page(uint64_t v_addr) {
-    v_addr &= VMM_ADDR_MASK;
-
-    uint64_t *pml4 = (uint64_t *)get_virt_addr(get_pml4_phys());
-    uint64_t  pml4e = pml4[PML4_IDX(v_addr)];
-    if (!(pml4e & VMM_PRESENT)) return;
-
-    uint64_t *pdpt = pte_to_virt(pml4e);
-    uint64_t  pdpte = pdpt[PDPT_IDX(v_addr)];
-    if (!(pdpte & VMM_PRESENT)) return;
-
-    uint64_t *pd  = pte_to_virt(pdpte);
-    uint64_t  pde = pd[PD_IDX(v_addr)];
-    if (!(pde & VMM_PRESENT)) return;
-
-    uint64_t *pt  = pte_to_virt(pde);
-    uint64_t  pte = pt[PT_IDX(v_addr)];
-    if (!(pte & VMM_PRESENT)) return;
-
-    pmm_free(pte & VMM_ADDR_MASK);
-    pt[PT_IDX(v_addr)] = 0;
-
-    invalidate_page(v_addr);
+vmm_context_t* get_current_context(void) {
+    return &g_kernel_ctx;
 }
 
-uint64_t virt_to_phys(uint64_t v_addr) {
-    uint64_t offset = v_addr & 0xFFF;
-    v_addr &= VMM_ADDR_MASK;
-
-    uint64_t *pml4 = (uint64_t *)get_virt_addr(get_pml4_phys());
-    uint64_t  pml4e = pml4[PML4_IDX(v_addr)];
-    if (!(pml4e & VMM_PRESENT)) return 0;
-
-    uint64_t *pdpt = pte_to_virt(pml4e);
-    uint64_t  pdpte = pdpt[PDPT_IDX(v_addr)];
-    if (!(pdpte & VMM_PRESENT)) return 0;
-
-    uint64_t *pd  = pte_to_virt(pdpte);
-    uint64_t  pde = pd[PD_IDX(v_addr)];
-    if (!(pde & VMM_PRESENT)) return 0;
-
-    uint64_t *pt  = pte_to_virt(pde);
-    uint64_t  pte = pt[PT_IDX(v_addr)];
-    if (!(pte & VMM_PRESENT)) return 0;
-
-    return (pte & VMM_ADDR_MASK) | offset;
+void vmm_switch_context(vmm_context_t *new_ctx) {
+    asm volatile ("mov %0, %%cr3" :: "r"(ctx->pml4_phys) : "memory");
 }
+
+vmmm_map_page ()
