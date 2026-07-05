@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include "memory.h"
 #include "pmm.h"
 
 #define PTE_PRESENT   (1ULL <<  0)

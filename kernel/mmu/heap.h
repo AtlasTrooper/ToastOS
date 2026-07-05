@@ -1,13 +1,13 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include "pmm.h"
 #include "vmm.h"
-#include "memory.h"
+
+typedef struct vmm_context_t vmm_context_t;
 
 typedef void *mspace;
 
-typedef struct heap {
+typedef struct heap_t {
     mspace ms;
     uint64_t base_addr;
     uint64_t end_addr;
@@ -23,6 +23,13 @@ heap_t* heap_create(
             uint64_t max_size,
             uint64_t flags);
 void* heap_alloc(heap_t *heap, size_t bytes);
-void heap_free(heap *heap, void *ptr);
+void heap_free(heap_t *heap, void *ptr);
 void* heap_realloc(heap_t *heap, void *ptr, size_t new_bytes);
 
+void init_kheap();
+int heap_is_valid(const heap_t *heap);
+heap_t* k_heap_status(void);
+
+void* kmalloc(size_t size);
+void  kfree(void *ptr);
+void* krealloc(void *ptr, size_t size);

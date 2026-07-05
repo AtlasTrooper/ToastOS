@@ -17,6 +17,7 @@
 #define LACKS_SYS_TYPES_H
 #define LACKS_ERRNO_H
 #define LACKS_STDLIB_H
+#define LACKS_TIME_H 1
 
 // Core compilation choices
 #define MSPACES 1             // CRITICAL: Enables create_mspace_with_base()
@@ -29,4 +30,22 @@
 #include "vmm.h"
 #include "pmm.h"
 #include "../drivers/timer.h"
+
+
+
+/* ── Feed dlmalloc with your custom timer driver ── */
+// Option A: If your driver exposes a tick function
+extern uint64_t timer_get_ticks(void);
+#define INITIAL_LOCK_SEED  ((size_t)timer_get_ticks())
+
+// Option B: If your driver exposes a global volatile tick count instead
+// extern volatile uint64_t system_ticks;
+// #define INITIAL_LOCK_SEED  ((size_t)system_ticks)
+
+#ifndef ABORT
+#define ABORT KPANIC(NULL, "dlmalloc: internal assertion failure")
+#endif
+#define ABORT_ON_ASSERT_FAILURE 1
+
+
 #endif // DLMALLOC_CONFIG_H

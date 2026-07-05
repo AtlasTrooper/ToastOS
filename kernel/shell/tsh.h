@@ -7,8 +7,8 @@
 #include "../stdlib/string.h"
 #include "../drivers/kb.h"
 #include "../drivers/timer.h"
-#include "../mmu/pmm.h"
-#include "../mmu/vmm.h"
+// #include "../mmu/pmm.h"
+// #include "../mmu/vmm.h"
 #include "../mmu/heap.h"
 void init_shell(void);
 void readline(char *buf, int max);
@@ -46,7 +46,7 @@ static const command_t commands[] = {
     { "darud", cmd_darud, ""                                                            },
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
     {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
-    {"heaptest", cmd_heaptest, "Runs kmalloc suite and tests their functionality"},
+    {"heaptest", cmd_heaptest, "Stresses the dynamic mspace heap allocator and page mapper"},
     { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };

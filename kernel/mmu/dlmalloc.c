@@ -1,3 +1,5 @@
+#pragma once
+#include "dlmalloc_config.h"
 /*
 Copyright 2023 Doug Lea
 

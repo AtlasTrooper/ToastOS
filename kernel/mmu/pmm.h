@@ -29,6 +29,7 @@ typedef struct {
 const pmm_header_t *get_pmm_header(void);
 
 uint64_t  get_hhdm(void);
+uint64_t get_max_addr(void);
 void     *get_virt_addr(uint64_t paddr);
 uint64_t  get_phys_addr(void *vaddr);
 uint64_t  pmm_alloc(void);

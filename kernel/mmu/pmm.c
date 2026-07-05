@@ -17,7 +17,7 @@ static pmm_header_t pmm;
 
 const pmm_header_t *get_pmm_header(void) { return &pmm; }
 uint64_t get_hhdm(void)                  { return pmm.hhdm_base; }
-
+uint64_t get_max_addr(void)                   { return pmm.max_frames * PAGE_SIZE;}
 void *get_virt_addr(uint64_t paddr) {
     return (void *)(paddr + pmm.hhdm_base);
 }

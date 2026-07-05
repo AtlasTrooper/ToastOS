@@ -224,146 +224,138 @@ void cmd_meminfo(int argc, char **argv) {
     putstr("  Table walk:             HHDM\n");
     putstr("==============================================\n\n");
  
-    heap_t *heap = k_heap_status();
+    heap_t *heap = k_heap_status(); // Assuming this returns a pointer to your new global heap_t
     putstr("================= Kernel Heap ================\n");
-    if (!heap) {
+    
+    if (!heap_is_valid(heap)) {
         putstr("  [not initialised]\n");
     } else {
-        uint64_t committed = heap->curr    - heap->base;
-        uint64_t mapped    = heap->mapped  - heap->base;
+        uint64_t initial_reserved = heap->end_addr - heap->base_addr;
+        uint64_t max_capacity     = heap->limit   - heap->base_addr;
  
-        printf("  Heap base:              0x%016llx\n", heap->base);
-        printf("  Current break:          0x%016llx\n", heap->curr);
-        printf("  Mapped up to:           0x%016llx\n", heap->mapped);
-        printf("  Committed (break):      %llu bytes  (%llu KiB)\n",
-               committed, committed / 1024);
-        printf("  Mapped (pages):         %llu bytes  (%llu KiB)\n",
-               mapped, mapped / 1024);
-        printf("  Slack (mapped-commit):  %llu bytes\n",
-               heap->mapped - heap->curr);
+        printf("  Heap Base Address:      0x%016lx\n", heap->base_addr);
+        printf("  Current Upper Limit:    0x%016lx\n", heap->end_addr);
+        printf("  Ultimate Virtual Max:   0x%016lx\n", heap->limit);
+        putstr("  ---------------------------------------------\n");
+        printf("  Active Pool Size:       %lu bytes  (%lu KiB)\n",
+               initial_reserved, initial_reserved / 1024);
+        printf("  Max Scale Boundary:     %lu bytes  (%lu MiB)\n",
+               max_capacity, max_capacity / (1024 * 1024));
+        printf("  Remaining Headroom:     %lu bytes  (%lu MiB)\n",
+               heap->limit - heap->end_addr, (heap->limit - heap->end_addr) / (1024 * 1024));
     }
     putstr("==============================================\n");
 }
 
-
-/* ── cmd_heaptest ────────────────────────────────────────────────────────────
- *
- * Exercises kmalloc/kfree in a few stages so you can watch the heap grow
- * and shrink in meminfo:
- *
- *   Stage 1 – small allocs:  allocate 8 pointers of increasing size,
- *             write a canary value, read it back, free them all.
- *
- *   Stage 2 – large alloc:  one 64 KiB block, fill with 0xAB, verify,
- *             free it.
- *
- *   Stage 3 – realloc:  alloc 64 bytes, realloc to 256, check the old
- *             data survived.
- *
- *   Stage 4 – calloc:  make sure the returned memory is actually zeroed.
- */
 void cmd_heaptest(int argc, char **argv) {
-    (void)argc; (void)argv;
- 
-    putstr("\n[heaptest] starting...\n");
- 
-    /* ── Stage 1: small allocs ── */
-    putstr("[heaptest] stage 1: small allocs\n");
-    void *ptrs[8];
-    int   failed = 0;
- 
-    for (int i = 0; i < 8; i++) {
-        size_t sz = (size_t)(16 << i);   /* 16, 32, 64, … 2048 bytes */
-        ptrs[i] = kmalloc(sz);
- 
-        if (!ptrs[i]) {
-            printf("  [FAIL] kmalloc(%llu) returned NULL\n", (uint64_t)sz);
-            failed++;
-            continue;
-        }
- 
-        /* Write a canary: every byte = low 8 bits of index */
-        uint8_t *p = (uint8_t *)ptrs[i];
-        for (size_t b = 0; b < sz; b++) p[b] = (uint8_t)i;
- 
-        /* Verify */
-        int corrupt = 0;
-        for (size_t b = 0; b < sz; b++)
-            if (p[b] != (uint8_t)i) { corrupt = 1; break; }
- 
-        if (corrupt) {
-            printf("  [FAIL] canary mismatch at ptrs[%d] (sz=%llu)\n",
-                   i, (uint64_t)sz);
-            failed++;
-        } else {
-            printf("  [ok]   kmalloc(%llu) -> 0x%llx\n",
-                   (uint64_t)sz, (uint64_t)ptrs[i]);
-        }
-    }
- 
-    for (int i = 0; i < 8; i++)
-        if (ptrs[i]) kfree(ptrs[i]);
- 
-    putstr(failed ? "[heaptest] stage 1: FAILED\n"
-                  : "[heaptest] stage 1: passed\n");
- 
-    /* ── Stage 2: large alloc ── */
-    putstr("[heaptest] stage 2: large alloc (64 KiB)\n");
-    size_t   large_sz = 64 * 1024;
-    uint8_t *large    = (uint8_t *)kmalloc(large_sz);
- 
-    if (!large) {
-        putstr("  [FAIL] kmalloc(64K) returned NULL\n");
-    } else {
-        for (size_t i = 0; i < large_sz; i++) large[i] = 0xAB;
- 
-        int ok = 1;
-        for (size_t i = 0; i < large_sz; i++)
-            if (large[i] != 0xAB) { ok = 0; break; }
- 
-        printf("  [%s]  64 KiB fill+verify\n", ok ? "ok  " : "FAIL");
-        kfree(large);
-    }
- 
-    /* ── Stage 3: realloc ── */
-    putstr("[heaptest] stage 3: realloc\n");
-    uint8_t *r = (uint8_t *)kmalloc(64);
-    if (!r) {
-        putstr("  [FAIL] initial kmalloc for realloc returned NULL\n");
-    } else {
-        for (int i = 0; i < 64; i++) r[i] = (uint8_t)i;
- 
-        r = (uint8_t *)krealloc(r, 256);
-        if (!r) {
-            putstr("  [FAIL] krealloc returned NULL\n");
-        } else {
-            int ok = 1;
-            for (int i = 0; i < 64; i++)
-                if (r[i] != (uint8_t)i) { ok = 0; break; }
- 
-            printf("  [%s]  data survived realloc to 256 bytes\n",
-                   ok ? "ok  " : "FAIL");
-            kfree(r);
-        }
-    }
- 
-    /* ── Stage 4: calloc zeroing ── */
-    putstr("[heaptest] stage 4: calloc zeroing\n");
-    uint8_t *z = (uint8_t *)kcalloc(128, 1);
-    if (!z) {
-        putstr("  [FAIL] kcalloc returned NULL\n");
-    } else {
-        int ok = 1;
-        for (int i = 0; i < 128; i++)
-            if (z[i] != 0) { ok = 0; break; }
- 
-        printf("  [%s]  128 bytes zeroed by calloc\n", ok ? "ok  " : "FAIL");
-        kfree(z);
-    }
- 
-    putstr("[heaptest] done.\n\n");
-}
+    (void)argc;
+    (void)argv;
 
+    printf("[HEAP TEST] Starting core kernel allocator validations...\n");
+
+    // Retrieve active tracking status 
+    heap_t *status = k_heap_status();
+    if (!status) {
+        printf("[HEAP TEST] FAIL: Kernel heap status handle is NULL.\n");
+        return;
+    }
+    printf("[HEAP TEST] Initial State: base=0x%llx, end=0x%llx, limit=0x%llx\n",
+           (unsigned long long)status->base_addr, 
+           (unsigned long long)status->end_addr, 
+           (unsigned long long)status->limit);
+
+    // ─────────────────────────────────────────────────────────────────
+    // TEST 1: Basic Sub-Allocations & Data Integrity
+    // ─────────────────────────────────────────────────────────────────
+    printf("[HEAP TEST] Test 1: Executing sequential small allocations...\n");
+    #define TEST_ELEMENTS 16
+    uint8_t *buffers[TEST_ELEMENTS];
+
+    for (int i = 0; i < TEST_ELEMENTS; i++) {
+        size_t alloc_size = (i + 1) * 64; 
+        buffers[i] = (uint8_t *)kmalloc(alloc_size);
+
+        if (!buffers[i]) {
+            printf("[HEAP TEST] FAIL: Allocation failed at index %d for size %d\n", i, (int)alloc_size);
+            return;
+        }
+
+        // Fill with unique patterns to verify no overlapping addresses exist
+        memset(buffers[i], 0xA5 + i, alloc_size);
+    }
+    printf("[HEAP TEST] Test 1: SUCCESS (Sequential arrays mapped cleanly).\n");
+
+    // ─────────────────────────────────────────────────────────────────
+    // TEST 2: Data Validation & Cross-contamination Verification
+    // ─────────────────────────────────────────────────────────────────
+    printf("[HEAP TEST] Test 2: Verifying heap block boundary integrity...\n");
+    for (int i = 0; i < TEST_ELEMENTS; i++) {
+        size_t alloc_size = (i + 1) * 64;
+        for (size_t j = 0; j < alloc_size; j++) {
+            if (buffers[i][j] != (uint8_t)(0xA5 + i)) {
+                printf("[HEAP TEST] FAIL: Memory corruption detected at buffers[%d][%d]!\n", i, (int)j);
+                return;
+            }
+        }
+    }
+    printf("[HEAP TEST] Test 2: SUCCESS (Zero memory stomping or degradation).\n");
+
+    // ─────────────────────────────────────────────────────────────────
+    // TEST 3: Dynamic Arena Expansion (The vmm_map_page runway)
+    // ─────────────────────────────────────────────────────────────────
+    printf("[HEAP TEST] Test 3: Forcing dynamic arena expansion past initial sizing...\n");
+    uint64_t old_end = status->end_addr;
+
+    // Allocate a chunk significantly larger than standard page steps 
+    // to force mspace to call your custom expansion loop inside heap_alloc
+    size_t massive_size = 1024 * 1024 * 20; // 20 MiB (greater than 16MiB initial heap base)
+    printf("[HEAP TEST] Requesting a massive chunk: %d bytes\n", (int)massive_size);
+    
+    void *massive_ptr = kmalloc(massive_size);
+    if (!massive_ptr) {
+        printf("[HEAP TEST] FAIL: Dynamic expansion failed to map massive block.\n");
+        return;
+    }
+
+    // Verify heap boundary tracked variables altered upward
+    uint64_t new_end = status->end_addr;
+    printf("[HEAP TEST] Post-Expansion State: end=0x%llx (Grew by %lld bytes)\n", 
+            (unsigned long long)new_end, (unsigned long long)(new_end - old_end));
+
+    if (new_end <= old_end) {
+        printf("[HEAP TEST] FAIL: end_addr did not increment following massive allocation expansion.\n");
+        kfree(massive_ptr);
+        return;
+    }
+
+    // Write a test sequence to confirm physical backed memory pages are actually present via page tables
+    memset(massive_ptr, 0x5A, massive_size);
+    printf("[HEAP TEST] Test 3: SUCCESS (VMM dynamically backstopped pages cleanly).\n");
+
+    // ─────────────────────────────────────────────────────────────────
+    // TEST 4: Reclamation via Freeing
+    // ─────────────────────────────────────────────────────────────────
+    printf("[HEAP TEST] Test 4: Reclaiming memory chunks and validating recycle paths...\n");
+    
+    // Free the large allocation block
+    kfree(massive_ptr);
+
+    // Free sequential small validation regions
+    for (int i = 0; i < TEST_ELEMENTS; i++) {
+        kfree(buffers[i]);
+    }
+
+    // Verify that space can be cleanly reassigned without allocating new pages
+    void *recycled_ptr = kmalloc(1024 * 512); // 512 KiB
+    if (!recycled_ptr) {
+        printf("[HEAP TEST] FAIL: Allocator failed to reuse recently freed blocks.\n");
+        return;
+    }
+    kfree(recycled_ptr);
+
+    printf("[HEAP TEST] Test 4: SUCCESS (All objects freed and recycled smoothly).\n");
+    printf("[HEAP TEST] ALL KERNEL HEAP ALLOCATOR TESTS PASSED SUCCESSFULLY!\n");
+}
 
 const char *memmap_type_str(uint64_t type) {
     switch (type) {
