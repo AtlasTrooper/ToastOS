@@ -29,7 +29,10 @@ void* heap_realloc(heap_t *heap, void *ptr, size_t new_bytes);
 void init_kheap();
 int heap_is_valid(const heap_t *heap);
 heap_t* k_heap_status(void);
-
+void* sys_sbrk(ptrdiff_t increment);
 void* kmalloc(size_t size);
 void  kfree(void *ptr);
 void* krealloc(void *ptr, size_t size);
+
+void* sys_mmap_alloc(size_t size);
+int sys_munmap_free(void* addr, size_t size);
