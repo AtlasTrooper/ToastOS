@@ -20,7 +20,7 @@ Development follows 10 core stages, each building on the last.
 |-------|------|--------|
 | 1 | Shell | Complete |
 | 2 | Dynamic Memory Allocation | Done|
-| 2.5 | Transition to 64-bit | In progress |
+| 2.5 | Transition to 64-bit | Done |
 | 3 | Multitasking and Ring 3
 | 4 | Main and boot partition file systems
 | 5 | Usermode stdlib (mussl or glibc)
