@@ -37,7 +37,14 @@ void readline(char *buf, int max) {
                 buf[buf_index] = '\0';
                 putchar('\n');
                 return;
-
+            case '\t':
+                for(uint64_t i = 0; i < 4; i++) {
+                    if (buf_index < max - 1){
+                        buf[buf_index++] = ' ';
+                        putchar(' ');
+                    }
+                }
+                continue;
             case '\b':
                 if (buf_index > 0) {
                     buf_index--;

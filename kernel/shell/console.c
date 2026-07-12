@@ -95,6 +95,7 @@ void putchar(char c) {
             break;
 
         case '\b':
+            if (cursor_visible) draw_char_at(' ', cursor_col, cursor_row);
             if (cursor_col == 0 && cursor_row != 0) {
                 cursor_row--;
                 cursor_col = con_cols;
@@ -142,7 +143,7 @@ void console_tick() {
         fb_draw_rect(px, py, w, h, con_bg);
         cursor_visible = 0;
     } else {
-        fb_draw_rect(px, py, w, h, con_fg);
+        draw_char_at('_', cursor_col, cursor_row);
         cursor_visible = 1;
     }
 }
