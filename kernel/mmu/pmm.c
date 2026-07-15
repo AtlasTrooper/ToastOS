@@ -45,6 +45,7 @@ static void alloc_frame(uint64_t frame_addr) {
     uint64_t bit_idx = frame % 8;
 
     pmm.b_map[byte_idx] |= (1 << bit_idx);
+    pmm.free_frames < 0 ? pmm.free_frames = 0 : pmm.free_frames --;
 }
 
 uint64_t pmm_alloc(void) {
