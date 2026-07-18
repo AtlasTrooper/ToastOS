@@ -46,10 +46,6 @@ void initGDT(void) {
     gdtr.lim = sizeof(gdt_table) - 1;
     gdtr.base = (uint64_t)&gdt_table;
 
-    // printf("gdt_table size: %d\n", (int)sizeof(gdt_table));
-    // printf("gdtEntry size: %d\n", (int)sizeof(gdtEntry));
-    // printf("tssEntry size: %d\n", (int)sizeof(tssEntry));
-
     gdt_flush(&gdtr);
     tss_flush();
 }
