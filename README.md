@@ -59,6 +59,7 @@ The pmm is implemented as a bitmap positioned after the kernel, followed by the 
 I wrote a generic heap_t struct so that later on I can add per process heaps down the line.
  
 Note: I know bitmaps may not be the most efficient algorithm (seeing as they can lead to O(n) search for free space), but for now the main concern was learning the fundementals of building an mmu. I might switch to something like the buddy system in the future.
+
 ---
 
 ### Stage 2.5 — Transition to 64-bit (Complete!)
@@ -77,6 +78,10 @@ Also added a proper kernel panic(finally) and started expanding the idividual ex
 
 ---
 
+## Progress updates
+
+### First successfull hardware test!
+![First bare-metal test on my old Dell inspiron](docs/screenshots/baremetal1.jpeg)
 
 ## Resources & References
 
