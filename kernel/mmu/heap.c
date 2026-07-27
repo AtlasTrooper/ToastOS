@@ -35,28 +35,20 @@ void* sys_mmap_alloc(size_t size) {
 int sys_munmap_free(void* addr, size_t size) {
     heap_t *heap = active_allocation_heap;
     if (!heap) heap = k_heap;
-    if (!heap) return -1;
+    if (!heap || !addr || size == 0) return -1;
 
     uint64_t start_addr = (uint64_t)addr;
-    uint64_t end_addr = start_addr + size;
+    uint64_t end_addr   = start_addr + size;
 
-    uint64_t start_page = CEIL(start_addr, PAGE_SIZE);
-    uint64_t end_page = CEIL(end_addr, PAGE_SIZE);
+    uint64_t start_page = start_addr & PAGE_MASK;
+    uint64_t end_page   = CEIL(end_addr, PAGE_SIZE);
 
     for (uint64_t p_addr = start_page; p_addr < end_page; p_addr += PAGE_SIZE) {
-        uint64_t phys = get_phys_addr((uint64_t*)p_addr);
+        uint64_t phys = vmm_get_phys(heap->vmm_ctx, p_addr);
         if (phys) {
             pmm_free(phys);
         }
         vmm_unmap_page(heap->vmm_ctx, p_addr);
-    }
-
-    if (end_addr >= heap->end_addr) {
-        if (start_addr < heap->base_addr) {
-            heap->end_addr = heap->base_addr;
-        } else {
-            heap->end_addr = start_addr;
-        }
     }
 
     return 0;
