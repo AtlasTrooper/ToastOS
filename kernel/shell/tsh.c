@@ -334,7 +334,7 @@ void cmd_heaptest(int argc, char **argv) {
         kfree(massive_ptr);
         return;
     }
-
+    
     // Write a test sequence to confirm physical backed memory pages are actually present via page tables
     memset(massive_ptr, 0x5A, massive_size);
     printf("[HEAP TEST] Test 3: SUCCESS (VMM dynamically backstopped pages cleanly).\n");

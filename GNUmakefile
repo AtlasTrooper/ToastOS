@@ -26,7 +26,8 @@ LDFLAGS = -m elf_x86_64 -nostdlib -static \
 	-z max-page-size=0x1000 --gc-sections \
 	-T linker.ld
 
-QEMU_FLAGS = -serial stdio -m 512M
+QEMU_FLAGS = -serial stdio -m 1G
+OVMF       = /usr/share/edk2/x64/OVMF.4m.fd
 
 BOCHS      = bochs
 BOCHSRC    = bochsrc.txt
@@ -38,6 +39,7 @@ BUILD      = build
 ISO_DIR    = isodir
 KERNEL_ELF = $(BUILD)/kernel.elf
 ISO        = $(BUILD)/toast.iso
+DISK_IMG   = $(BUILD)/disk.img
 
 # ========================
 # Source discovery
@@ -105,7 +107,7 @@ $(KERNEL_ELF): GNUmakefile linker.ld $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@
 
 # ========================
-# Build ISO (Limine)
+# Build ISO (Limine CD-ROM)
 # ========================
 $(ISO): $(KERNEL_ELF)
 	mkdir -p $(ISO_DIR)/EFI/BOOT
@@ -123,13 +125,38 @@ $(ISO): $(KERNEL_ELF)
 		-efi-boot-part --efi-boot-image \
 		--protective-msdos-label \
 		$(ISO_DIR) -o $(ISO)
-	./limine/limine bios-install $(ISO)
+	limine bios-install $(ISO)
 
 .PHONY: iso
 iso: $(ISO)
 
 # ========================
-# Run in QEMU
+# Build Raw GPT Disk Image (UEFI)
+# ========================
+$(DISK_IMG): $(KERNEL_ELF) limine.cfg
+	@mkdir -p $(BUILD)
+	@echo "==> Creating raw GPT disk image..."
+	dd if=/dev/zero of=$@ bs=1M count=64 status=none
+	parted -s $@ mklabel gpt
+	parted -s $@ mkpart ESP fat32 2048s 100%
+	parted -s $@ set 1 boot on
+	@echo "==> Formatting and populating FAT32 partition..."
+	@LOOP_DEV=$$(sudo losetup -Pf --show $@) ; \
+	sudo mkfs.vfat -F 32 $${LOOP_DEV}p1 > /dev/null ; \
+	mkdir -p $(BUILD)/mnt ; \
+	sudo mount $${LOOP_DEV}p1 $(BUILD)/mnt ; \
+	sudo mkdir -p $(BUILD)/mnt/EFI/BOOT ; \
+	sudo cp $(KERNEL_ELF)             $(BUILD)/mnt/kernel.elf ; \
+	sudo cp limine.cfg                $(BUILD)/mnt/ ; \
+	sudo cp limine/BOOTX64.EFI        $(BUILD)/mnt/EFI/BOOT/ ; \
+	sudo umount $(BUILD)/mnt ; \
+	sudo losetup -d $${LOOP_DEV}
+
+.PHONY: image
+image: $(DISK_IMG)
+
+# ========================
+# Run in QEMU (BIOS / ISO)
 # ========================
 .PHONY: run
 run: $(ISO)
@@ -139,6 +166,16 @@ run: $(ISO)
 qemu-debug: $(ISO)
 	$(QEMU) -cdrom $(ISO) $(QEMU_FLAGS) -d int -no-reboot -no-shutdown
 
+# ========================
+# Run in QEMU (UEFI / GPT Disk)
+# ========================
+.PHONY: disk
+disk: $(DISK_IMG)
+	$(QEMU) -bios $(OVMF) -drive format=raw,file=$(DISK_IMG) $(QEMU_FLAGS)
+
+.PHONY: disk-debug
+disk-debug: $(DISK_IMG)
+	$(QEMU) -bios $(OVMF) -drive format=raw,file=$(DISK_IMG) $(QEMU_FLAGS) -d int -no-reboot -no-shutdown
 
 # ========================
 # Bochs debugger
