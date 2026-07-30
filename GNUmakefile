@@ -33,13 +33,16 @@ BOCHS      = bochs
 BOCHSRC    = bochsrc.txt
 
 # ========================
-# Directories / outputs
+# Directories / outputs / hardware
 # ========================
 BUILD      = build
 ISO_DIR    = isodir
 KERNEL_ELF = $(BUILD)/kernel.elf
 ISO        = $(BUILD)/toast.iso
 DISK_IMG   = $(BUILD)/disk.img
+
+USB_ID    ?= usb-SanDisk_Cruzer_Blade_04014828031623094824-0:0
+USB_DEV   := /dev/disk/by-id/$(USB_ID)
 
 # ========================
 # Source discovery
@@ -140,9 +143,9 @@ $(DISK_IMG): $(KERNEL_ELF) limine.cfg
 	parted -s $@ mklabel gpt
 	parted -s $@ mkpart ESP fat32 2048s 100%
 	parted -s $@ set 1 boot on
-	@echo "==> Formatting and populating FAT32 partition..."
+	@echo "==> Formatting (toast) and populating FAT32 partition..."
 	@LOOP_DEV=$$(sudo losetup -Pf --show $@) ; \
-	sudo mkfs.vfat -F 32 $${LOOP_DEV}p1 > /dev/null ; \
+	sudo mkfs.vfat -F 32 -n toast $${LOOP_DEV}p1 > /dev/null ; \
 	mkdir -p $(BUILD)/mnt ; \
 	sudo mount $${LOOP_DEV}p1 $(BUILD)/mnt ; \
 	sudo mkdir -p $(BUILD)/mnt/EFI/BOOT ; \
@@ -154,6 +157,22 @@ $(DISK_IMG): $(KERNEL_ELF) limine.cfg
 
 .PHONY: image
 image: $(DISK_IMG)
+
+# ========================
+# Flash to Hardware USB
+# ========================
+.PHONY: flash
+flash: $(DISK_IMG)
+	@if [ ! -b $(USB_DEV) ]; then \
+		echo "Error: USB drive ($(USB_DEV)) not found. Is it plugged in?"; \
+		exit 1; \
+	fi
+	@echo "==> Unmounting any active partitions..."
+	-sudo umount $$(readlink -f $(USB_DEV))* 2>/dev/null || true
+	@echo "==> Flashing $(DISK_IMG) to $(USB_DEV)..."
+	sudo dd if=$(DISK_IMG) of=$(USB_DEV) bs=4M status=progress conv=fsync
+	sync
+	@echo "==> Flash complete! Drive labeled toast."
 
 # ========================
 # Run in QEMU (BIOS / ISO)

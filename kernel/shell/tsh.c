@@ -12,7 +12,7 @@ static int  buf_index = 0;
 
 void init_shell(void) {
     print_banner();
-
+    cmd_fetch(0, NULL);
     while (1) {
         print_prompt();
         readline(buf, KB_BUF_SIZE);
@@ -25,7 +25,6 @@ void init_shell(void) {
 
 void readline(char *buf, int max) {
     buf_index = 0;
-    /* zero the buffer so stale bytes never leak */
     for (int i = 0; i < max; i++) buf[i] = 0;
 
     while (1) {
@@ -52,7 +51,7 @@ void readline(char *buf, int max) {
                     putchar('\b');
                 }
                 continue;
-
+            
             case '\x1b':
                 if (kb_getchar() == '[') {
                     char dir = kb_getchar();
@@ -60,7 +59,7 @@ void readline(char *buf, int max) {
                     else if (dir == 'B') get_next_cmd();
                 }
                 continue;
-
+            
             default:
                 break;
         }
@@ -175,11 +174,6 @@ void cmd_echo(int argc, char **argv) {
         if (i < argc - 1) putchar(' ');
     }
     putchar('\n');
-}
-
-void cmd_darud(int argc, char **argv) {
-    (void)argc; (void)argv;
-    play_sandstorm();
 }
 
 void cmd_lsh(int argc, char **argv) {
@@ -379,6 +373,7 @@ const char *memmap_type_str(uint64_t type) {
 }
  
 void cmd_memmap(int argc, char **argv) {
+
     (void)argc; (void)argv;
  
     const pmm_header_t *pmm = get_pmm_header();
@@ -415,6 +410,43 @@ void cmd_memmap(int argc, char **argv) {
     printf(" Total usable: %llu MiB (%llu bytes)\n",
            total_usable / (1024 * 1024), total_usable);
     putstr("========================================================\n");
+}
+
+void cmd_fetch(int argc, char **argv) {
+    (void)argc; 
+    (void)argv;
+
+    char cpu_name[49] = {0};
+    uint32_t *brand = (uint32_t *)cpu_name;
+    for (uint32_t i = 0; i < 3; i++) {
+        __cpuid(0x80000002 + i, brand[i*4 + 0], brand[i*4 + 1], 
+                                brand[i*4 + 2], brand[i*4 + 3]);
+    }
+
+    uint64_t uptime = get_uptime_seconds();
+    uint64_t mins = uptime / 60;
+    uint64_t secs = uptime % 60;
+
+    const pmm_header_t *pmm = get_pmm_header();
+    uint64_t total_mib = 0, used_mib = 0;
+    
+    if (pmm) {
+        total_mib = (pmm->max_frames  * PAGE_SIZE) / (1024 * 1024);
+        uint64_t free_mib = (pmm->free_frames * PAGE_SIZE) / (1024 * 1024);
+        used_mib  = total_mib - free_mib;
+    }
+
+    putstr("\n");
+    printf(" \033[36muser\033[0m@\033[36mToastOS\033[0m\n");
+    printf(" -------------------\n");
+    printf(" \033[33mOS\033[0m: ToastOS x86_64\n");
+    printf(" \033[33mUptime\033[0m: %llu mins, %llu secs\n", mins, secs);
+    printf(" \033[33mCPU\033[0m: %s\n", cpu_name[0] ? cpu_name : "Unknown Processor");
+    printf(" \033[33mMemory\033[0m: %llu MiB / %llu MiB\n", used_mib, total_mib);
+    printf("\n");
+    
+    printf(" \033[41m   \033[42m   \033[43m   \033[44m   \033[45m   \033[46m   \033[47m   \033[0m\n");
+    printf("\n");
 }
 
 void cmd_exit(int argc, char **argv) {

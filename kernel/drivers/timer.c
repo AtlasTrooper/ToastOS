@@ -4,13 +4,23 @@
 #include "../idt/idt.h"
 #include "../shell/console.h"
 
-#define INIT_FREQ 1193180
+#define PIT_BASE_FREQ     1193180
+#define PIT_CHANNEL0_PORT 0x40
+#define PIT_COMMAND_PORT  0x43
 
-static volatile int tick_count    = 0;
-static volatile int channel_0_hz  = 100;
+static volatile uint64_t tick_count    = 0;
+static volatile uint32_t channel_0_hz  = 100;
 
-int get_tick_count(void) {
+uint64_t get_tick_count(void) {
     return tick_count;
+}
+
+uint64_t get_uptime_ms(void) {
+    return (tick_count * 1000) / channel_0_hz;
+}
+
+uint64_t get_uptime_seconds(void) {
+    return tick_count / channel_0_hz;
 }
 
 void timer_handler(system_state *sys) {
@@ -19,73 +29,25 @@ void timer_handler(system_state *sys) {
     console_tick();
 }
 
-void timer_wait_t(int ticks) {
-    int future = tick_count + ticks;
-    while (tick_count < future)
+void timer_wait_t(uint32_t ticks) {
+    uint64_t target = tick_count + (uint64_t)ticks; 
+    while (tick_count < target) {
         asm volatile("hlt");
+    }
 }
 
-void timer_config(int hz) {
-    int divisor = INIT_FREQ / hz;
-    outb(0x43, 0x36);
-    outb(0x40, divisor & 0xFF);
-    outb(0x40, divisor >> 8);
+void timer_config(uint32_t hz) {
+    if (hz == 0) return;
+    
+    channel_0_hz = hz;
+    uint32_t divisor = PIT_BASE_FREQ / hz; 
+    
+    outb(PIT_COMMAND_PORT, 0x36);
+    outb(PIT_CHANNEL0_PORT, divisor & 0xFF);
+    outb(PIT_CHANNEL0_PORT, (divisor >> 8) & 0xFF);
 }
 
 void init_timer(void) {
     irq_assign_handler(0, timer_handler);
     timer_config(channel_0_hz);
-}
-
-void speaker_config(uint32_t freq) {
-    uint32_t div = INIT_FREQ / freq;
-    outb(0x43, 0xb6);
-    outb(0x42, div & 0xFF);
-    outb(0x42, div >> 8);
-}
-
-void enable_speaker(void) {
-    uint8_t tmp = inb(0x61);
-    if (tmp != (tmp | 3))
-        outb(0x61, tmp | 3);
-}
-
-void disable_speaker(void) {
-    uint8_t off = inb(0x61) & 0xFC;
-    outb(0x61, off);
-}
-
-void beep(void) {
-    enable_speaker();
-    timer_wait_t(100);
-    disable_speaker();
-}
-
-void play_note(uint32_t freq, uint32_t dur) {
-    int gap = 10;
-    if (freq == 0) {
-        timer_wait_t(dur);
-    } else {
-        speaker_config(freq);
-        enable_speaker();
-        timer_wait_t(dur - gap);
-        disable_speaker();
-        timer_wait_t(gap);
-    }
-}
-
-void play_sandstorm(void) {
-    timer_config(1000);
-    int note_len = 90;
-    int i;
-    for (i = 0; i < 5; i++) play_note(NOTE_B4, note_len);
-    timer_wait_t(note_len);
-    for (i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
-    timer_wait_t(note_len);
-    play_note(NOTE_D5, note_len);
-    for (i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
-    for (i = 0; i < 7; i++) play_note(NOTE_E5, note_len);
-    play_note(NOTE_A4, note_len);
-    for (i = 0; i < 7; i++) play_note(NOTE_B4, note_len);
-    timer_config(100);
 }

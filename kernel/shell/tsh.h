@@ -10,6 +10,7 @@
 // #include "../mmu/pmm.h"
 // #include "../mmu/vmm.h"
 #include "../mmu/heap.h"
+#include <cpuid.h>
 void init_shell(void);
 void readline(char *buf, int max);
 int  parse_args(char *line, char **argv, int max_args);
@@ -27,6 +28,7 @@ void cmd_lsh   (int argc, char **argv);
 void cmd_meminfo (int argc, char **argv);
 void cmd_heaptest(int argc, char **argv);
 void cmd_memmap(int argc, char **argv);
+void cmd_fetch (int argc, char **argv);
 void cmd_exit  (int argc, char **argv);
 
 void print_banner(void);
@@ -43,11 +45,11 @@ typedef struct {
 static const command_t commands[] = {
     { "help",  cmd_help,  "Explains the operations of different commands"              },
     { "echo",  cmd_echo,  "Prints the arguments following the command"                 },
-    { "darud", cmd_darud, ""                                                            },
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
     {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
     {"heaptest", cmd_heaptest, "Stresses the dynamic mspace heap allocator and page mapper"},
     { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
+    { "fetch", cmd_fetch, "it ain't a real OS without fetch(I love systen diagnostics)"},
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };
 

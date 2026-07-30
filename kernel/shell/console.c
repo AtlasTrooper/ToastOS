@@ -2,6 +2,9 @@
 #include "../framebuffer.h"
 #include "../font.h"
 
+static int ansi_state = 0;
+static int ansi_param = 0;
+
 #define CURSOR_BLINK_TICKS 50
 static volatile int cursor_visible = 0;
 static volatile int cursor_blink_counter = 0;
@@ -85,6 +88,46 @@ void terminal_clear(void) {
 }
 
 void putchar(char c) {
+    if (ansi_state > 0) {
+        if (ansi_state == 1 && c == '[') {
+            ansi_state = 2; // Entered '[', start reading numbers
+            ansi_param = 0;
+            return;
+        } else if (ansi_state == 2 && c >= '0' && c <= '9') {
+            ansi_param = ansi_param * 10 + (c - '0'); // Accumulate digit
+            return;
+        } else if (ansi_state == 2 && c == 'm') {
+            // Sequence ended, apply the color based on ansi_param
+            uint32_t ansi_colors[] = {
+                CON_BLACK, CON_RED, CON_GREEN, CON_YELLOW, 
+                CON_BLUE, CON_MAGENTA, CON_CYAN, CON_WHITE
+            };
+
+            if (ansi_param == 0) {
+                // Reset code (\033[0m)
+                con_fg = CON_WHITE;
+                con_bg = CON_BLACK;
+            } else if (ansi_param >= 30 && ansi_param <= 37) {
+                // FG color codes (30-37)
+                con_fg = ansi_colors[ansi_param - 30];
+            } else if (ansi_param >= 40 && ansi_param <= 47) {
+                // BG color codes (40-47)
+                con_bg = ansi_colors[ansi_param - 40];
+            }
+            
+            ansi_state = 0;
+            return;
+        } else {
+            ansi_state = 0;
+            return;
+        }
+    }
+
+    if (c == '\033') {
+        ansi_state = 1;
+        return;
+    }
+
     switch (c) {
         case '\n':
             newLine();
