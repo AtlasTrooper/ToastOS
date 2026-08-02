@@ -447,6 +447,7 @@ void cmd_fetch(int argc, char **argv) {
     
     printf(" \033[41m   \033[42m   \033[43m   \033[44m   \033[45m   \033[46m   \033[47m   \033[0m\n");
     printf("\n");
+
 }
 
 void cmd_exit(int argc, char **argv) {
