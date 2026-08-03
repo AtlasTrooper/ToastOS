@@ -79,6 +79,8 @@ heap_t* heap_create(
     heap->limit = base + max_size;
     heap->flags = flags;
 
+    debug_print_hex("Heap flags: ", flags);
+
     heap_t *prev_active = active_allocation_heap;
     active_allocation_heap = heap;
 
@@ -129,7 +131,7 @@ void init_kheap() {
     uint64_t alligned_high = CEIL(highest, PAGE_SIZE);
     uint64_t base = alligned_high + get_hhdm();
 
-    if (!heap_create(get_current_context(), base, 1024 * 1024 * 16, 1024 * 1024 * 64, PTE_WRITE)) {
+    if (!heap_create(get_current_context(), base, 1024 * 1024 * 16, 1024 * 1024 * 64, (PTE_WRITE | PTE_PRESENT))) {
         KPANIC(NULL, "init_kheap: failed to instantiate kernel heap framework.");
     }
 }

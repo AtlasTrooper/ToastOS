@@ -8,6 +8,7 @@ void init_vmm() {
 
     uint64_t initial_cr3;
     asm volatile("mov %%cr3, %0" : "=r"(initial_cr3));
+    initial_cr3 &= PTE_FRAME_MASK;
     uint64_t *limine_pml4_virt = (uint64_t*)(initial_cr3 + g_hhdm_off);
 
     uint64_t new_pml4_phys = pmm_alloc();
@@ -50,14 +51,12 @@ void vmm_map_page(vmm_context_t *ctx, uint64_t v_addr, uint64_t p_addr, uint64_t
     uint64_t pt_idx   = (v_addr >> 12) & 0x1FF;
 
     uint64_t *pml4 = ctx->pml_virt;
+
     uint64_t *pdpt = get_or_alloc_table(pml4, pml4_idx, flags);
-    if (!pdpt) return;
 
     uint64_t *pd = get_or_alloc_table(pdpt, pdpt_idx, flags);
-    if (!pd) return;
 
     uint64_t *pt = get_or_alloc_table(pd, pd_idx, flags);
-    if (!pt) return;
 
     pt[pt_idx] = (p_addr & PTE_FRAME_MASK) | PTE_PRESENT | flags;
     asm volatile ("invlpg (%0)" :: "r"(v_addr) : "memory");

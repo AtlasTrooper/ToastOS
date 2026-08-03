@@ -2,8 +2,8 @@
 #include "../framebuffer.h"
 #include "../font.h"
 
-static int ansi_state = 0;
-static int ansi_param = 0;
+static volatile int ansi_state = 0;
+static volatile int ansi_param = 0;
 
 #define CURSOR_BLINK_TICKS 50
 static volatile int cursor_visible = 0;
@@ -16,8 +16,9 @@ static uint32_t cursor_row = 0;
 static uint32_t con_cols = 0;
 static uint32_t con_rows = 0;
 
+const Framebuffer *fb;
 void console_init(void) {
-    const Framebuffer *fb = fb_get();
+    fb = fb_get();
     con_cols = fb->width  / font_width();
     con_rows = fb->height / font_height();
     cursor_col = 0;
@@ -72,6 +73,11 @@ void newLine(void) {
 }
 
 void clearLine(size_t row) {
+    // Safety check: ensure framebuffer address is mapped and valid
+    if (!fb->addr || ((uint64_t)fb->addr & 0xFFFF000000000000ULL) == 0) {
+        // Handle invalid/unmapped state gracefully instead of crashing
+        return; 
+    }
     if (row >= con_rows) return;
     clear_row((uint32_t)row);
     if ((uint32_t)row == cursor_row) cursor_col = 0;

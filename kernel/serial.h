@@ -33,6 +33,7 @@ int serial_recevied(unsigned int com);
 char serial_read(unsigned int com);
 void serial_write(unsigned int com, char* a);
 void debug_print(char *a);
+void debug_print_hex(char *prefix, uint64_t val);
 void serial_init(unsigned short com);
 
 

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "pmm.h"
+#include "../serial.h"
 
 #define PTE_PRESENT   (1ULL <<  0)
 #define PTE_WRITE     (1ULL <<  1)

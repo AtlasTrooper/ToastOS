@@ -11,7 +11,7 @@ QEMU = qemu-system-x86_64
 # ========================
 # Flags
 # ========================
-CFLAGS = -std=gnu11 -ffreestanding -O2 -Wall -Wextra \
+CFLAGS = -std=gnu11 -g -ffreestanding -O2 -Wall -Wextra \
 	-fno-stack-protector -fno-stack-check -fno-lto -fno-PIC \
 	-ffunction-sections -fdata-sections \
 	-m64 -march=x86-64 -mabi=sysv \

@@ -132,8 +132,11 @@ void init_pmm(void) {
      for (size_t i = 0; i < memmap->entry_count; i++) {
         struct limine_memmap_entry *ent = memmap->entries[i];
         if (ent->type == LIMINE_MEMMAP_USABLE) {
-           uint64_t start_addr = ent->base;
-           uint64_t end_addr = start_addr + ent->length;
+           uint64_t start_addr = (ent->base + PAGE_SIZE - 1) & PAGE_MASK;
+           uint64_t end_addr = (ent->base + ent->length) & PAGE_MASK;
+
+            if (start_addr >= end_addr) continue;
+
            if (!set_first_frame) {
                 pmm.alloc_start_frame = ent->base;
                 set_first_frame = 1;

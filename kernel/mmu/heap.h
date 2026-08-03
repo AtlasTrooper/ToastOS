@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "vmm.h"
-
 typedef struct vmm_context_t vmm_context_t;
 
 typedef void *mspace;

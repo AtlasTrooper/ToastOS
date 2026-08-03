@@ -69,6 +69,22 @@ void debug_print(char *a) {
     serial_write(SERIAL_COM1_START, "\n");
 }
 
+void debug_print_hex(char *prefix, uint64_t val) {
+    char buf[19];
+    buf[0] = '0';
+    buf[1] = 'x';
+    buf[18] = '\0';
+    
+    char *hex_chars = "0123456789ABCDEF";
+    for (int i = 15; i >= 0; i--) {
+        buf[2 + i] = hex_chars[val & 0xF];
+        val >>= 4;
+    }
+    
+    debug_print(prefix);
+    debug_print(buf);
+}
+
 void serial_init(unsigned short com){
     outb(com +1, 0x00);
 
