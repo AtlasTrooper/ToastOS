@@ -49,8 +49,8 @@ void _start(void) {
     init_rtc();
     kb_init();
     init_pmm();
-    //init_vmm();
-    //init_kheap();
+    init_vmm();
+    init_kheap();
     init_shell();
 
 }

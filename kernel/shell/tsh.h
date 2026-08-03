@@ -26,10 +26,13 @@ void cmd_echo  (int argc, char **argv);
 void cmd_darud (int argc, char **argv);
 void cmd_lsh   (int argc, char **argv);
 void cmd_meminfo (int argc, char **argv);
-void cmd_heaptest(int argc, char **argv);
 void cmd_memmap(int argc, char **argv);
 void cmd_fetch (int argc, char **argv);
 void cmd_exit  (int argc, char **argv);
+
+void cmd_pmmtest(int argc, char **argv);
+void cmd_vmmtest(int argc, char **argv);
+void cmd_heaptest(int argc, char **argv);
 
 void print_banner(void);
 void print_prompt(void);
@@ -47,7 +50,9 @@ static const command_t commands[] = {
     { "echo",  cmd_echo,  "Prints the arguments following the command"                 },
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
     {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
-    {"heaptest", cmd_heaptest, "Stresses the dynamic mspace heap allocator and page mapper"},
+    {"pmmtest", cmd_pmmtest, "testing the pmm"},
+    {"vmmtest", cmd_vmmtest, "testing the vmm"},
+    {"heaptest", cmd_heaptest, "tests the kernel heap"},
     { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
     { "fetch", cmd_fetch, "it ain't a real OS without fetch(I love systen diagnostics)"},
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }

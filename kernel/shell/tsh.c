@@ -186,176 +186,169 @@ void cmd_lsh(int argc, char **argv) {
 
 void cmd_meminfo(int argc, char **argv) {
     (void)argc; (void)argv;
- 
-    putstr("===============\n");
-    putstr("= ToastOS MMU =\n");
-    putstr("===============\n\n");
- 
-    const pmm_header_t *pmm = get_pmm_header();
-    if (!pmm) {
-        putstr("[PMM] Error: header is NULL\n");
-        return;
-    }
- 
-    uint64_t total_mib = (pmm->max_frames   * PAGE_SIZE) / (1024 * 1024);
-    uint64_t free_mib  = (pmm->free_frames  * PAGE_SIZE) / (1024 * 1024);
-    uint64_t used_mib  = total_mib - free_mib;
- 
-    putstr("==================== PMM ====================\n");
-    printf("  HHDM base:              0x%016llx\n", pmm->hhdm_base);
-    printf("  Kernel phys base:       0x%016llx\n", pmm->kernel_phys_base);
-    printf("  Kernel virt base:       0x%016llx\n", pmm->kernel_virt_base);
-    printf("  Kernel phys end:        0x%016llx\n", pmm->kernel_phys_end);
-    putstr("  ---------------------------------------------\n");
-    printf("  Bitmap phys addr:       0x%016llx\n", pmm->bitmap_phys);
-    printf("  Bitmap virt ptr:        0x%016llx\n", (uint64_t)pmm->b_map);
-    printf("  Bitmap size:            %lu Bytes\n",  pmm->bitmap_bytes);
-    putstr("  ---------------------------------------------\n");
-    printf("  First alloc frame:      0x%016llx\n",   pmm->alloc_start_frame);
-    printf("  Total frames:           %llu\n",        pmm->max_frames);
-    printf("  Free frames:            %llu\n",        pmm->free_frames);
-    printf("  Memory:                 %llu MiB total  %llu MiB used  %llu MiB free\n",
+putstr("===============\n");
+putstr("= ToastOS MMU =\n");
+putstr("===============\n\n");
+const pmm_header_t *pmm = get_pmm_header();
+if (!pmm) {
+putstr("[PMM] Error: header is NULL\n");
+return;
+}
+uint64_t total_mib = (pmm->max_frames   * PAGE_SIZE) / (1024 * 1024);
+uint64_t free_mib  = (pmm->free_frames  * PAGE_SIZE) / (1024 * 1024);
+uint64_t used_mib  = total_mib - free_mib;
+putstr("==================== PMM ====================\n");
+printf("  HHDM base:              0x%016llx\n", pmm->hhdm_base);
+printf("  Kernel phys base:       0x%016llx\n", pmm->kernel_phys_base);
+printf("  Kernel virt base:       0x%016llx\n", pmm->kernel_virt_base);
+printf("  Kernel phys end:        0x%016llx\n", pmm->kernel_phys_end);
+putstr("  ---------------------------------------------\n");
+printf("  Bitmap phys addr:       0x%016llx\n", pmm->bitmap_phys);
+printf("  Bitmap virt ptr:        0x%016llx\n", (uint64_t)pmm->b_map);
+printf("  Bitmap size:            %lu Bytes\n",  pmm->bitmap_bytes);
+putstr("  ---------------------------------------------\n");
+printf("  First alloc frame:      0x%016llx\n",   pmm->alloc_start_frame);
+printf("  Total frames:           %llu\n",        pmm->max_frames);
+printf("  Free frames:            %llu\n",        pmm->free_frames);
+printf("  Memory:                 %llu MiB total  %llu MiB used  %llu MiB free\n",
            total_mib, used_mib, free_mib);
-    putstr("==============================================\n\n");
- 
-    putstr("==================== VMM ====================\n");
-    printf("  Active PML4 (CR3):      0x%016llx\n", get_current_context());
-    putstr("  Page table levels:      4  (PML4 -> PDPT -> PD -> PT)\n");
-    putstr("  Page size:              4 KiB\n");
-    putstr("  Table walk:             HHDM\n");
-    putstr("==============================================\n\n");
- 
-    heap_t *heap = k_heap_status(); // Assuming this returns a pointer to your new global heap_t
-    putstr("================= Kernel Heap ================\n");
-    
-    if (!heap_is_valid(heap)) {
-        putstr("  [not initialised]\n");
-    } else {
-        uint64_t initial_reserved = heap->end_addr - heap->base_addr;
-        uint64_t max_capacity     = heap->limit   - heap->base_addr;
- 
-        printf("  Heap Base Address:      0x%016lx\n", heap->base_addr);
-        printf("  Current Upper Limit:    0x%016lx\n", heap->end_addr);
-        printf("  Ultimate Virtual Max:   0x%016lx\n", heap->limit);
-        putstr("  ---------------------------------------------\n");
-        printf("  Active Pool Size:       %lu bytes  (%lu KiB)\n",
-               initial_reserved, initial_reserved / 1024);
-        printf("  Max Scale Boundary:     %lu bytes  (%lu MiB)\n",
+putstr("==============================================\n\n");
+putstr("==================== VMM ====================\n");
+printf("  Active PML4 (CR3):      0x%016llx\n", get_current_context()->pml_phys);
+putstr("  Page table levels:      4  (PML4 -> PDPT -> PD -> PT)\n");
+putstr("  Page size:              4 KiB\n");
+putstr("  Table walk:             HHDM\n");
+putstr("==============================================\n\n");
+heap_t *heap = k_heap_status();
+putstr("================= Kernel Heap (sbrk) ================\n");
+if (!heap_is_valid(heap)) {
+putstr("  [not initialised]\n");
+} else {
+uint64_t used_virtual = heap->brk - heap->base_addr;
+uint64_t backed_bytes = heap->mapped_end - heap->base_addr;
+uint64_t max_capacity = heap->limit - heap->base_addr;
+uint64_t headroom     = heap->limit - heap->brk;
+
+printf("  Heap Base Address:      0x%016lx\n", heap->base_addr);
+printf("  Current Break (brk):    0x%016lx\n", heap->brk);
+printf("  Mapped/Backed Up To:    0x%016lx\n", heap->mapped_end);
+printf("  Ultimate Virtual Max:   0x%016lx\n", heap->limit);
+putstr("  ---------------------------------------------\n");
+printf("  Logical Used Size:      %lu bytes  (%lu KiB)\n",
+               used_virtual, used_virtual / 1024);
+printf("  Physically Backed:      %lu bytes  (%lu KiB)\n",
+               backed_bytes, backed_bytes / 1024);
+printf("  Max Scale Boundary:     %lu bytes  (%lu MiB)\n",
                max_capacity, max_capacity / (1024 * 1024));
-        printf("  Remaining Headroom:     %lu bytes  (%lu MiB)\n",
-               heap->limit - heap->end_addr, (heap->limit - heap->end_addr) / (1024 * 1024));
+printf("  Remaining Headroom:     %lu bytes  (%lu MiB)\n",
+               headroom, headroom / (1024 * 1024));
+}
+putstr("=======================================================\n");
+}
+
+void cmd_pmmtest(int argc, char **argv) {
+    debug_print("[TEST] Starting PMM tests...\n");
+
+    uint64_t frame1 = pmm_alloc();
+    if (!frame1 || (frame1 & 0xFFF) != 0) {
+        debug_print("[FAIL] PMM allocation failed or unaligned!\n");
+        for(;;);
     }
-    putstr("==============================================\n");
+
+    uint64_t frame2 = pmm_alloc();
+    if (frame1 == frame2) {
+        debug_print("[FAIL] PMM allocated duplicate frames!\n");
+        for(;;);
+    }
+
+    pmm_free(frame1);
+    pmm_free(frame2);
+    debug_print("[PASS] PMM tests passed!\n");
+}
+
+void cmd_vmmtest(int argc, char **argv) {
+    debug_print("[TEST] Starting VMM tests...\n");
+
+    uint64_t phys = pmm_alloc();
+    printf("\nPHYS %p\n", phys);
+    uint64_t virt = 0xFFFF900000000000ULL;
+    vmm_map_page(get_current_context(), virt, phys, VMM_FLAGS_KERNEL_RW);
+
+    volatile uint64_t *test_ptr = (volatile uint64_t*)virt;
+    *test_ptr = 0x123456789ABCDEF0ULL;
+
+    if (*test_ptr != 0x123456789ABCDEF0ULL) {
+        debug_print("[FAIL] VMM read/write validation failed!\n");
+        debug_print_hex("Read value: ", *test_ptr);
+        for(;;);
+    }
+
+    debug_print("[PASS] VMM mapping and round-trip memory test passed!\n");
 }
 
 void cmd_heaptest(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
+    (void)argc; (void)argv;
 
-    printf("[HEAP TEST] Starting core kernel allocator validations...\n");
+    debug_print("[TEST] Starting kernel heap (sbrk) tests...\n");
 
-    // Retrieve active tracking status 
-    heap_t *status = k_heap_status();
-    if (!status) {
-        printf("[HEAP TEST] FAIL: Kernel heap status handle is NULL.\n");
+    heap_t *heap = k_heap_status();
+    if (!heap_is_valid(heap)) {
+        debug_print("[FAIL] Kernel heap not initialised!\n");
         return;
     }
-    printf("[HEAP TEST] Initial State: base=0x%llx, end=0x%llx, limit=0x%llx\n",
-           (unsigned long long)status->base_addr, 
-           (unsigned long long)status->end_addr, 
-           (unsigned long long)status->limit);
 
-    // ─────────────────────────────────────────────────────────────────
-    // TEST 1: Basic Sub-Allocations & Data Integrity
-    // ─────────────────────────────────────────────────────────────────
-    printf("[HEAP TEST] Test 1: Executing sequential small allocations...\n");
-    #define TEST_ELEMENTS 16
-    uint8_t *buffers[TEST_ELEMENTS];
+    uint64_t mapped_before = heap->mapped_end;
+    printf("[TEST] Initial brk:        0x%016lx\n", heap->brk);
+    printf("[TEST] Initial mapped_end: 0x%016lx\n", heap->mapped_end);
 
-    for (int i = 0; i < TEST_ELEMENTS; i++) {
-        size_t alloc_size = (i + 1) * 64; 
-        buffers[i] = (uint8_t *)kmalloc(alloc_size);
+    #define N_ALLOCS 64
+    void *ptrs[N_ALLOCS];
+    size_t alloc_size = 8192;
 
-        if (!buffers[i]) {
-            printf("[HEAP TEST] FAIL: Allocation failed at index %d for size %d\n", i, (int)alloc_size);
-            return;
+    for (int i = 0; i < N_ALLOCS; i++) {
+        ptrs[i] = kmalloc(alloc_size);
+        if (!ptrs[i]) {
+            debug_print("[FAIL] kmalloc returned NULL!\n");
+            for (;;);
         }
-
-        // Fill with unique patterns to verify no overlapping addresses exist
-        memset(buffers[i], 0xA5 + i, alloc_size);
+        memset(ptrs[i], 0xAA, alloc_size);
     }
-    printf("[HEAP TEST] Test 1: SUCCESS (Sequential arrays mapped cleanly).\n");
 
-    // ─────────────────────────────────────────────────────────────────
-    // TEST 2: Data Validation & Cross-contamination Verification
-    // ─────────────────────────────────────────────────────────────────
-    printf("[HEAP TEST] Test 2: Verifying heap block boundary integrity...\n");
-    for (int i = 0; i < TEST_ELEMENTS; i++) {
-        size_t alloc_size = (i + 1) * 64;
+    uint64_t mapped_after_alloc = heap->mapped_end;
+    printf("[TEST] mapped_end after allocs: 0x%016lx\n", mapped_after_alloc);
+
+    if (mapped_after_alloc <= mapped_before) {
+        debug_print("[FAIL] Heap did not grow after allocations!\n");
+        for (;;);
+    }
+
+    for (int i = 0; i < N_ALLOCS; i++) {
+        uint8_t *p = (uint8_t*)ptrs[i];
         for (size_t j = 0; j < alloc_size; j++) {
-            if (buffers[i][j] != (uint8_t)(0xA5 + i)) {
-                printf("[HEAP TEST] FAIL: Memory corruption detected at buffers[%d][%d]!\n", i, (int)j);
-                return;
+            if (p[j] != 0xAA) {
+                debug_print("[FAIL] Heap memory corruption detected!\n");
+                for (;;);
             }
         }
     }
-    printf("[HEAP TEST] Test 2: SUCCESS (Zero memory stomping or degradation).\n");
 
-    // ─────────────────────────────────────────────────────────────────
-    // TEST 3: Dynamic Arena Expansion (The vmm_map_page runway)
-    // ─────────────────────────────────────────────────────────────────
-    printf("[HEAP TEST] Test 3: Forcing dynamic arena expansion past initial sizing...\n");
-    uint64_t old_end = status->end_addr;
-
-    // Allocate a chunk significantly larger than standard page steps 
-    // to force mspace to call your custom expansion loop inside heap_alloc
-    size_t massive_size = 1024 * 1024 * 20; // 20 MiB (greater than 16MiB initial heap base)
-    printf("[HEAP TEST] Requesting a massive chunk: %d bytes\n", (int)massive_size);
-    
-    void *massive_ptr = kmalloc(massive_size);
-    if (!massive_ptr) {
-        printf("[HEAP TEST] FAIL: Dynamic expansion failed to map massive block.\n");
-        return;
+    for (int i = 0; i < N_ALLOCS; i++) {
+        kfree(ptrs[i]);
     }
 
-    // Verify heap boundary tracked variables altered upward
-    uint64_t new_end = status->end_addr;
-    printf("[HEAP TEST] Post-Expansion State: end=0x%llx (Grew by %lld bytes)\n", 
-            (unsigned long long)new_end, (unsigned long long)(new_end - old_end));
+    // In case the automatic trim threshold wasn't crossed by these frees,
+    // force it so the test result is deterministic.
+    kheap_trim(0);
 
-    if (new_end <= old_end) {
-        printf("[HEAP TEST] FAIL: end_addr did not increment following massive allocation expansion.\n");
-        kfree(massive_ptr);
-        return;
-    }
-    
-    // Write a test sequence to confirm physical backed memory pages are actually present via page tables
-    memset(massive_ptr, 0x5A, massive_size);
-    printf("[HEAP TEST] Test 3: SUCCESS (VMM dynamically backstopped pages cleanly).\n");
+    uint64_t mapped_after_free = heap->mapped_end;
+    printf("[TEST] mapped_end after free+trim: 0x%016lx\n", mapped_after_free);
 
-    // ─────────────────────────────────────────────────────────────────
-    // TEST 4: Reclamation via Freeing
-    // ─────────────────────────────────────────────────────────────────
-    printf("[HEAP TEST] Test 4: Reclaiming memory chunks and validating recycle paths...\n");
-    
-    // Free the large allocation block
-    kfree(massive_ptr);
-
-    // Free sequential small validation regions
-    for (int i = 0; i < TEST_ELEMENTS; i++) {
-        kfree(buffers[i]);
+    if (mapped_after_free >= mapped_after_alloc) {
+        debug_print("[FAIL] Heap did not shrink after freeing memory!\n");
+        for (;;);
     }
 
-    // Verify that space can be cleanly reassigned without allocating new pages
-    void *recycled_ptr = kmalloc(1024 * 512); // 512 KiB
-    if (!recycled_ptr) {
-        printf("[HEAP TEST] FAIL: Allocator failed to reuse recently freed blocks.\n");
-        return;
-    }
-    kfree(recycled_ptr);
-
-    printf("[HEAP TEST] Test 4: SUCCESS (All objects freed and recycled smoothly).\n");
-    printf("[HEAP TEST] ALL KERNEL HEAP ALLOCATOR TESTS PASSED SUCCESSFULLY!\n");
+    debug_print("[PASS] Kernel heap grow/shrink test passed!\n");
 }
 
 const char *memmap_type_str(uint64_t type) {

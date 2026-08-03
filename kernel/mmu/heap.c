@@ -1,151 +1,118 @@
 #include "heap.h"
+#include "pmm.h"
 
-extern mspace create_mspace(size_t capacity, int locked);
-extern void* mspace_malloc(mspace msp, size_t bytes);
-extern void mspace_free(mspace msp, void* mem);
-extern void* mspace_realloc(mspace msp, void* mem, size_t newsize);
+extern void*  dlmalloc(size_t bytes);
+extern void   dlfree(void* mem);
+extern void*  dlrealloc(void* mem, size_t newsize);
+extern int    dlmalloc_trim(size_t pad);
 
+static heap_t k_heap_storage;
 static heap_t *k_heap = NULL;
-static heap_t *active_allocation_heap = NULL;
 
+#define PAGE_ALIGN_UP(x) CEIL((x), PAGE_SIZE)
 
-void* sys_mmap_alloc(size_t size) {
-    heap_t *heap = active_allocation_heap;
-    if (!heap) heap = k_heap;
-    if (!heap) return (void*)-1; // CMFAIL / MAP_FAILED
+void* sys_sbrk(intptr_t increment) {
+    heap_t *heap = k_heap;
+    if (!heap) return (void*)-1;
 
-    if (heap->end_addr + size > heap->limit) return (void*)-1;
+    uint64_t old_brk = heap->brk;
 
-    uint64_t start_addr = heap->end_addr;
-    uint64_t end_addr = start_addr + size;
-
-    uint64_t start_page = CEIL(start_addr, PAGE_SIZE);
-    uint64_t end_page = CEIL(end_addr, PAGE_SIZE);
-
-    for (uint64_t addr = start_page; addr < end_page; addr += PAGE_SIZE) {
-        uint64_t phys = pmm_alloc();
-        if (!phys) return (void*)-1;
-        vmm_map_page(heap->vmm_ctx, addr, phys, heap->flags);
+    if (increment == 0) {
+        return (void*)old_brk;
     }
 
-    heap->end_addr = end_addr;
-    return (void*)start_addr;
-}
-
-int sys_munmap_free(void* addr, size_t size) {
-    heap_t *heap = active_allocation_heap;
-    if (!heap) heap = k_heap;
-    if (!heap || !addr || size == 0) return -1;
-
-    uint64_t start_addr = (uint64_t)addr;
-    uint64_t end_addr   = start_addr + size;
-
-    uint64_t start_page = start_addr & PAGE_MASK;
-    uint64_t end_page   = CEIL(end_addr, PAGE_SIZE);
-
-    for (uint64_t p_addr = start_page; p_addr < end_page; p_addr += PAGE_SIZE) {
-        uint64_t phys = vmm_get_phys(heap->vmm_ctx, p_addr);
-        if (phys) {
-            pmm_free(phys);
+    if (increment > 0) {
+        uint64_t new_brk = old_brk + (uint64_t)increment;
+        if (new_brk > heap->limit) {
+            // Would exceed the heap's reserved virtual range.
+            return (void*)-1;
         }
-        vmm_unmap_page(heap->vmm_ctx, p_addr);
+
+        uint64_t need_top = PAGE_ALIGN_UP(new_brk);
+        uint64_t mapped_so_far = heap->mapped_end;
+
+        while (mapped_so_far < need_top) {
+            uint64_t phys = pmm_alloc();
+            if (!phys) {
+                heap->mapped_end = mapped_so_far;
+                return (void*)-1;
+            }
+            vmm_map_page(heap->vmm_ctx, mapped_so_far, phys, heap->flags);
+            mapped_so_far += PAGE_SIZE;
+        }
+
+        heap->mapped_end = mapped_so_far;
+        heap->brk = new_brk;
+        return (void*)old_brk;
     }
 
-    return 0;
-}
+    // --- Shrinking ---
+    uint64_t shrink_by = (uint64_t)(-increment);
+    uint64_t new_brk = (shrink_by > (old_brk - heap->base_addr))
+                            ? heap->base_addr
+                            : old_brk - shrink_by;
 
-heap_t* heap_create(
-            vmm_context_t *vmm_ctx,
-            uint64_t base,
-            uint64_t initial_size,
-            uint64_t max_size,
-            uint64_t flags) {
+    uint64_t keep_top = PAGE_ALIGN_UP(new_brk);
+    uint64_t mapped_top = heap->mapped_end;
 
-    initial_size = CEIL(initial_size, PAGE_SIZE);
-    heap_t *heap = NULL;
-
-    if (k_heap == NULL) {
-        static heap_t meta_heap;
-        k_heap = &meta_heap;
-        heap = k_heap;
-    } else {
-        heap = (heap_t*)kmalloc(sizeof(heap_t));
-        if (!heap) return NULL;
+    while (mapped_top > keep_top) {
+        mapped_top -= PAGE_SIZE;
+        uint64_t phys = vmm_get_phys(heap->vmm_ctx, mapped_top);
+        if (phys) pmm_free(phys);
+        vmm_unmap_page(heap->vmm_ctx, mapped_top);
     }
 
-    heap->vmm_ctx = vmm_ctx;
-    heap->base_addr = base;
-    heap->end_addr = base;
-    heap->limit = base + max_size;
-    heap->flags = flags;
-
-    debug_print_hex("Heap flags: ", flags);
-
-    heap_t *prev_active = active_allocation_heap;
-    active_allocation_heap = heap;
-
-    mspace ms = create_mspace(0, 0);
-    
-    active_allocation_heap = prev_active;
-
-    if (!ms) {
-        if (heap != k_heap) kfree(heap);
-        return NULL;
-    }
-
-    heap->ms = ms;
-    return heap;
+    heap->mapped_end = mapped_top;
+    heap->brk = new_brk;
+    return (void*)old_brk;
 }
 
-void* heap_alloc(heap_t *heap, size_t bytes) {
-    if (!heap) return NULL;
-    
-    heap_t *prev_active = active_allocation_heap;
-    active_allocation_heap = heap;
+/*
+ Dedicated Kheap region to prevent us from
+ walking into the hhdm memory territory
+*/
+#define KHEAP_VIRT_BASE 0xFFFF900000000000ULL
 
-    void *ptr = mspace_malloc(heap->ms, bytes);
+void init_kheap(void) {
+    k_heap = &k_heap_storage;
+    k_heap->base_addr  = KHEAP_VIRT_BASE;
+    k_heap->brk        = KHEAP_VIRT_BASE;
+    k_heap->mapped_end = KHEAP_VIRT_BASE;
+    k_heap->limit      = KHEAP_VIRT_BASE + (1024ULL * 1024 * 64);
+    k_heap->flags      = VMM_FLAGS_KERNEL_RW;
+    k_heap->vmm_ctx    = get_current_context();
 
-    active_allocation_heap = prev_active;
-    return ptr;
-}
+    debug_print_hex("Kernel heap base:  ", k_heap->base_addr);
+    debug_print_hex("Kernel heap limit: ", k_heap->limit);
 
-void heap_free(heap_t *heap, void *ptr) {
-    if (!heap || !ptr) return;
-    mspace_free(heap->ms, ptr);
-}
-
-void* heap_realloc(heap_t *heap, void *ptr, size_t new_bytes) {
-    if (!heap) return NULL;
-
-    heap_t *prev_active = active_allocation_heap;
-    active_allocation_heap = heap;
-
-    void *new_ptr = mspace_realloc(heap->ms, ptr, new_bytes);
-
-    active_allocation_heap = prev_active;
-    return new_ptr;
-}
-
-void init_kheap() {
-    uint64_t highest = get_max_addr();
-    uint64_t alligned_high = CEIL(highest, PAGE_SIZE);
-    uint64_t base = alligned_high + get_hhdm();
-
-    if (!heap_create(get_current_context(), base, 1024 * 1024 * 16, 1024 * 1024 * 64, (PTE_WRITE | PTE_PRESENT))) {
-        KPANIC(NULL, "init_kheap: failed to instantiate kernel heap framework.");
-    }
-}
-
-int heap_is_valid(const heap_t *heap) {
-    return (heap != NULL && heap->ms != NULL);
 }
 
 heap_t* k_heap_status(void) {
     return k_heap;
 }
 
-void* kmalloc(size_t size) { return heap_alloc(k_heap, size); }
-void  kfree(void *ptr)     { heap_free(k_heap, ptr); }
-void* krealloc(void *ptr, size_t size) { return heap_realloc(k_heap, ptr, size); }
+int heap_is_valid(const heap_t *heap) {
+    return heap != NULL && heap->vmm_ctx != NULL;
+}
+
+void* kmalloc(size_t size) {
+    if (!k_heap) return NULL;
+    return dlmalloc(size);
+}
+
+void kfree(void *ptr) {
+    if (!k_heap || !ptr) return;
+    dlfree(ptr);
+}
+
+void* krealloc(void *ptr, size_t size) {
+    if (!k_heap) return NULL;
+    return dlrealloc(ptr, size);
+}
+
+int kheap_trim(size_t pad) {
+    if (!k_heap) return 0;
+    return dlmalloc_trim(pad);
+}
 
 #include "dlmalloc.c"
