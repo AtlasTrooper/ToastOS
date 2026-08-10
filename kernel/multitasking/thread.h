@@ -10,18 +10,24 @@ typedef enum {
     THREAD_DEAD
 } thread_state_t;
 
-struct thread;
-
-typedef struct thread_t {
-    uint64_t tid;
-    process_t *parent;
-    
-    uint64_t rsp;
-    uint64_t kstack_base;     // Base address of the thread's kernel stack
-    uint64_t kstack_size;     // Size of the kernel stack (usually 4KiB or 8KiB)
-    
-    uint64_t time_slice;      // Ticks remaining before this thread is preempted
-    thread_state_t state;     // Current execution state
-    
-    struct thread *next;      // Pointer for the scheduler's Ready Queue
+typedef struct PACKED thread_t {
+    char *name;              // Offset  0 (8 bytes)
+    uint64_t pid;            // Offset  8 (8 bytes)
+    void* rsp;               // Offset 16 (8 bytes) - Kernel stack pointer
+    void* rsp0;              // Offset 24 (8 bytes) - Ring 0 stack top for TSS
+    void* cr3;               // Offset 32 (8 bytes) - Page directory base
+    thread_state_t state;    // Offset 40 (4 bytes)
+    struct thread_t *next;   // Offset 44 (8 bytes)
+    struct thread_t *parent; // Offset 52 (8 bytes)
 } thread_t;
+
+void init_multitasking();
+extern void switch_to_task(thread_t* next_thread);
+extern thread_t* current_task_TCB;
+
+typedef void (*task_entry_t) (void);
+void kernel_task_startup(void);
+thread_t* create_kernel_task(task_entry_t eip, char*name, uint64_t pid);
+
+void task1();
+void task2();

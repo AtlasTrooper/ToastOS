@@ -18,6 +18,7 @@
 #include "mmu/pmm.h"
 #include "mmu/vmm.h"
 #include "mmu/heap.h"
+#include "multitasking/thread.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -51,6 +52,13 @@ void _start(void) {
     init_pmm();
     init_vmm();
     init_kheap();
-    init_shell();
+    
+    init_multitasking();
+
+    // debug_print("[let the multitasking begin!]\n");
+
+    // __asm__ volatile("cli");
+    // switch_to_task();
+    // while(1);
 
 }
