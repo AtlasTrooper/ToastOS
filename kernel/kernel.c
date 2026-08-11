@@ -55,10 +55,4 @@ void _start(void) {
     
     init_multitasking();
 
-    // debug_print("[let the multitasking begin!]\n");
-
-    // __asm__ volatile("cli");
-    // switch_to_task();
-    // while(1);
-
 }

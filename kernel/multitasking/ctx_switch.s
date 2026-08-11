@@ -28,6 +28,9 @@ switch_to_task:
     movq TCB_RSP0(%rsi), %rdi
     call load_tss
 
+    #it's kinda self explanatory idk what to tell you
+    call update_task_time
+
     #stack ptr switch to next task kernel stack
     movq TCB_RSP(%rsi), %rsp
 

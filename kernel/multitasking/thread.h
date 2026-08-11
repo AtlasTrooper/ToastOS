@@ -2,7 +2,7 @@
 #include "../util.h"
 #include "../idt/idt.h"
 #include "process.h"
-
+#include "../drivers/timer.h"
 typedef enum {
     THREAD_READY,
     THREAD_RUNNING,
@@ -19,6 +19,8 @@ typedef struct PACKED thread_t {
     thread_state_t state;    // Offset 40 (4 bytes)
     struct thread_t *next;   // Offset 44 (8 bytes)
     struct thread_t *parent; // Offset 52 (8 bytes)
+
+    uint64_t time_elapsed; //Offset 60
 } thread_t;
 
 void init_multitasking();
@@ -28,6 +30,12 @@ extern thread_t* current_task_TCB;
 typedef void (*task_entry_t) (void);
 void kernel_task_startup(void);
 thread_t* create_kernel_task(task_entry_t eip, char*name, uint64_t pid);
+void update_task_time(void);
+void schedule(void);
 
+//Test functions
 void task1();
 void task2();
+
+//Terminal time poll
+thread_t* get_pid0();

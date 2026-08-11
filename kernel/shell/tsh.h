@@ -11,6 +11,7 @@
 // #include "../mmu/vmm.h"
 #include "../mmu/heap.h"
 #include <cpuid.h>
+#include "../multitasking/thread.h"
 void init_shell(void);
 void readline(char *buf, int max);
 int  parse_args(char *line, char **argv, int max_args);
@@ -34,6 +35,8 @@ void cmd_pmmtest(int argc, char **argv);
 void cmd_vmmtest(int argc, char **argv);
 void cmd_heaptest(int argc, char **argv);
 
+void cmd_poll_task_time(int argc, char **argv);
+
 void print_banner(void);
 void print_prompt(void);
 
@@ -55,6 +58,7 @@ static const command_t commands[] = {
     {"heaptest", cmd_heaptest, "tests the kernel heap"},
     { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
     { "fetch", cmd_fetch, "it ain't a real OS without fetch(I love systen diagnostics)"},
+    { "poll", cmd_poll_task_time, "task time check and other info"},
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };
 

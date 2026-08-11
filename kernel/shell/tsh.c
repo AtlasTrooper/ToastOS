@@ -20,6 +20,7 @@ void init_shell(void) {
 
         update_history(buf);
         shell_exec(buf);
+        schedule();
     }
 }
 
@@ -441,6 +442,19 @@ void cmd_fetch(int argc, char **argv) {
     printf(" \033[41m   \033[42m   \033[43m   \033[44m   \033[45m   \033[46m   \033[47m   \033[0m\n");
     printf("\n");
 
+}
+
+//TODO: note to self, add a 'reap' that frees dead tasks and make this into a proper taskinfo at some point
+void cmd_poll_task_time(int argc, char **argv) {
+    update_task_time();
+    thread_t* tracker = get_pid0();
+    printf("[TEST] Task time check:\n");
+    int looped = 0;
+    while (looped != 2) {
+        printf("%d : %s : %llu \n", tracker->pid, tracker->name, tracker->time_elapsed);
+        tracker = tracker->next;
+        if(tracker->pid == 1) looped ++;
+    }
 }
 
 void cmd_exit(int argc, char **argv) {
