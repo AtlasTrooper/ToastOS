@@ -20,7 +20,7 @@ void init_shell(void) {
 
         update_history(buf);
         shell_exec(buf);
-        schedule();
+        yield();
     }
 }
 

@@ -7,6 +7,7 @@ typedef enum {
     THREAD_READY,
     THREAD_RUNNING,
     THREAD_BLOCKD,
+    THREAD_PAUSED,
     THREAD_DEAD
 } thread_state_t;
 
@@ -24,8 +25,12 @@ typedef struct PACKED thread_t {
 } thread_t;
 
 void init_multitasking();
-extern void switch_to_task(thread_t* next_thread);
+void switch_to_task(thread_t* next_task);
+extern void context_switch(thread_t* next_thread);
+
 extern thread_t* current_task_TCB;
+extern thread_t* first_ready_task;
+extern thread_t* last_ready_task;
 
 typedef void (*task_entry_t) (void);
 void kernel_task_startup(void);
@@ -39,3 +44,12 @@ void task2();
 
 //Terminal time poll
 thread_t* get_pid0();
+
+//Schedule lock functions
+void lock_schedule(void);
+void unlock_schedule(void);
+
+void block_task(int reason);
+void unblock_task(thread_t* task);
+
+void yield(void);

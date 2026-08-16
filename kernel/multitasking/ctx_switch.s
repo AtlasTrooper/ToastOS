@@ -1,5 +1,5 @@
-.global switch_to_task
-.type switch_to_task, @function
+.global context_switch
+.type context_switch, @function
 
 .equ TCB_RSP, 16
 .equ TCB_RSP0, 24
@@ -8,7 +8,7 @@
 #C side function call: void switch_to_task(thread_t* next_thread);
 
 #disable IRQ's before and enable them after
-switch_to_task:
+context_switch:
     pushq %rbx
     pushq %rbp
     pushq %r12
