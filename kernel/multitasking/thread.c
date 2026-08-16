@@ -7,6 +7,9 @@
 static volatile uint64_t last_time_check;
 static volatile uint64_t IRQ_disable_counter = 0;
 
+static volatile int postpone_task_switches_counter = 0;
+static volatile int task_switches_postponed_flag = 0;
+
 thread_t* current_task_TCB = NULL;
 thread_t* t0 = NULL; //this is our "boot task"
 thread_t* shell_task = NULL;
@@ -14,6 +17,10 @@ thread_t* shell_task = NULL;
 //Ready Task queue
 thread_t* first_ready_task = NULL;
 thread_t* last_ready_task = NULL;
+
+//Sleeping Task queue
+thread_t* first_sleeping_task = NULL;
+thread_t* last_sleeping_task = NULL;
 
 //Test tasks
 thread_t* t1 = NULL;
@@ -106,7 +113,7 @@ thread_t* create_kernel_task(task_entry_t eip, char*name, uint64_t pid) {
 }
 
 void update_task_time(void) {
-    uint64_t cur_time = get_uptime_ms() * (1000 * 1000); //haha multiplying by a million is crazyyy
+    uint64_t cur_time = get_uptime_ns();
     uint64_t elapsed = last_time_check - cur_time;
     last_time_check = cur_time;
     current_task_TCB->time_elapsed += elapsed;
@@ -117,6 +124,12 @@ thread_t* get_pid0() {
 }
 
 void switch_to_task(thread_t* next_task) {
+    //must check this first in case of a postponed switch
+    if (postpone_task_switches_counter != 0) {
+        task_switches_postponed_flag = 1;
+        return;
+    }
+
     thread_t* prev_task = current_task_TCB;
  
     if (prev_task->state == THREAD_RUNNING) {
@@ -138,6 +151,11 @@ void switch_to_task(thread_t* next_task) {
 }
 
 void schedule(void) {
+    if (postpone_task_switches_counter != 0) {
+        task_switches_postponed_flag = 1;
+        return;
+    }
+
     if (first_ready_task != NULL) {
         thread_t* task = first_ready_task;
         first_ready_task = task->next;
@@ -160,6 +178,24 @@ void unlock_schedule(void) {
     if(IRQ_disable_counter == 0) __asm__ volatile("sti");
 }
 
+void lock_stuff(void) {
+    __asm__ volatile("cli");
+    IRQ_disable_counter++;
+    postpone_task_switches_counter++;
+}
+
+void unlock_stuff(void) {
+    postpone_task_switches_counter--;
+    if (postpone_task_switches_counter == 0) {
+        if (task_switches_postponed_flag != 0) {
+            task_switches_postponed_flag = 0;
+            schedule();
+        }
+    }
+    IRQ_disable_counter--;
+    if (IRQ_disable_counter == 0) __asm__ volatile("sti");
+}
+
 void yield(void) {
     lock_schedule();
     schedule();
@@ -173,10 +209,88 @@ void block_task(int reason) {
     unlock_schedule();
 }
 
+//Reminder to future self, do not call switch_to_task directly here, due to irq timer stuff
 void unblock_task(thread_t* task) {
-    
+    lock_schedule();
+    task->state = THREAD_READY;
+    task->next = NULL;
+
+    if (last_ready_task == NULL) {
+        first_ready_task = task;
+        last_ready_task = task;
+    } else {
+        last_ready_task->next = task;
+        last_ready_task = task;
+    }
+
+    unlock_schedule();
 }
 
+//abs time to avoid drift
+void nano_sleep_until(uint64_t wake_time_ns) {
+    /*
+        Protects the sleeping list from the timer IRQ handler walking/popping
+        it concurrently, and (using postponment) makes sure our
+        call into block_task() below can't get mixed up with anyone else
+        currently in the middle of waking tasks.
+    */
+    lock_stuff();
+
+    thread_t* task = current_task_TCB;
+    task->wake_time = wake_time_ns;
+    task->next = NULL;
+
+    if (first_sleeping_task == NULL || wake_time_ns < first_sleeping_task->wake_time) {
+        task->next = first_sleeping_task;
+        first_sleeping_task = task;
+        if (last_sleeping_task == NULL) {
+            last_sleeping_task = task;
+        }
+    } else {
+        thread_t* cur = first_sleeping_task;
+        while (cur->next != NULL && cur->next->wake_time <= wake_time_ns) {
+            cur = cur->next;
+        }
+        task->next = cur->next;
+        cur->next = task;
+        if (task->next == NULL) {
+            last_sleeping_task = task;
+        }
+    }
+
+    //block till enough time passes then pops
+    block_task(THREAD_BLOCKD);
+
+    unlock_stuff();
+}
+
+void nano_sleep(uint64_t nanoseconds) {
+    nano_sleep_until(get_uptime_ns() + nanoseconds);
+}
+
+void sleep_seconds(uint64_t seconds) {
+    nano_sleep(seconds * 1000000000ULL);
+}
+
+// Must be called periodically by the timer IRQ handler
+void timer_check_sleeping_tasks(void) {
+    lock_stuff();
+
+    uint64_t now = get_uptime_ns();
+
+    while (first_sleeping_task != NULL && first_sleeping_task->wake_time <= now) {
+        thread_t* task = first_sleeping_task;
+        first_sleeping_task = task->next;
+        if (first_sleeping_task == NULL) {
+            last_sleeping_task = NULL;
+        }
+        task->next = NULL;
+
+        unblock_task(task);
+    }
+
+    unlock_stuff();
+}
 
 void task1() {
     while (1) {
