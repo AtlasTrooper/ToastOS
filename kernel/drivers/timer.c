@@ -27,10 +27,15 @@ uint64_t get_uptime_seconds(void) {
     return tick_count / channel_0_hz;
 }
 
+uint64_t get_ns_per_tick(void) {
+    return 1000000000ULL / channel_0_hz;
+}
+
 void timer_handler(system_state *sys) {
     (void)sys;
     tick_count++;
     timer_check_sleeping_tasks();
+    scheduler_time_slice_tick();
     console_tick();
 }
 

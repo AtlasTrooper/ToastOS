@@ -4,11 +4,17 @@
 #include "../shell/tsh.h"
 
 #define NEW_TASK_KSTACK_SIZE 4096
+#define TIME_SLICE_IN_NS 50000000ULL
+
 static volatile uint64_t last_time_check;
 static volatile uint64_t IRQ_disable_counter = 0;
 
 static volatile int postpone_task_switches_counter = 0;
 static volatile int task_switches_postponed_flag = 0;
+
+static volatile uint64_t CPU_idle_time = 0;
+
+static volatile uint64_t time_slice_remaining = 0;
 
 thread_t* current_task_TCB = NULL;
 thread_t* t0 = NULL; //this is our "boot task"
@@ -116,6 +122,10 @@ void update_task_time(void) {
     uint64_t cur_time = get_uptime_ns();
     uint64_t elapsed = last_time_check - cur_time;
     last_time_check = cur_time;
+    if (!current_task_TCB) {
+        CPU_idle_time += elapsed;
+        return;
+    }
     current_task_TCB->time_elapsed += elapsed;
 }
 
@@ -146,11 +156,15 @@ void switch_to_task(thread_t* next_task) {
     }
  
     next_task->state = THREAD_RUNNING;
+
+    time_slice_remaining = (first_ready_task != NULL) ? TIME_SLICE_IN_NS : 0;
  
     context_switch(next_task); 
 }
 
 void schedule(void) {
+    thread_t* task;
+
     if (postpone_task_switches_counter != 0) {
         task_switches_postponed_flag = 1;
         return;
@@ -159,12 +173,27 @@ void schedule(void) {
     if (first_ready_task != NULL) {
         thread_t* task = first_ready_task;
         first_ready_task = task->next;
- 
-        if (first_ready_task == NULL) {
-            last_ready_task = NULL;
-        }
- 
         switch_to_task(task);
+    } else if (current_task_TCB->state == THREAD_RUNNING) {
+        time_slice_remaining = 0;
+    } else {
+        task = current_task_TCB;
+        current_task_TCB = NULL;
+        uint64_t idle_start_time = get_uptime_ns();
+
+        do {
+            __asm__ volatile("sti");
+            __asm__ volatile("hlt");
+            __asm__ volatile("cli");
+        } while (first_ready_task == NULL);
+
+        current_task_TCB = task;
+
+        task = first_ready_task;
+        first_ready_task = task->next;
+        if(task != current_task_TCB) {
+            switch_to_task(task);
+        }
     }
 }
 
@@ -236,6 +265,8 @@ void nano_sleep_until(uint64_t wake_time_ns) {
     */
     lock_stuff();
 
+    if(wake_time_ns <= get_uptime_ns()) {unlock_stuff(); return;}
+
     thread_t* task = current_task_TCB;
     task->wake_time = wake_time_ns;
     task->next = NULL;
@@ -259,7 +290,7 @@ void nano_sleep_until(uint64_t wake_time_ns) {
     }
 
     //block till enough time passes then pops
-    block_task(THREAD_BLOCKD);
+    block_task(THREAD_SLEEPING);
 
     unlock_stuff();
 }
@@ -292,9 +323,23 @@ void timer_check_sleeping_tasks(void) {
     unlock_stuff();
 }
 
+void scheduler_time_slice_tick(void) {
+    lock_stuff();
+    if (current_task_TCB != NULL && time_slice_remaining != 0) {
+        uint64_t ns_elapsed = get_ns_per_tick();
+ 
+        if (time_slice_remaining <= ns_elapsed) {
+            schedule();
+        } else {
+            time_slice_remaining -= ns_elapsed;
+        }
+    }
+    unlock_stuff();
+}
+
 void task1() {
     while (1) {
-        printf("Edennnnn\n");
+        printf(".");
         yield();
     }
 }

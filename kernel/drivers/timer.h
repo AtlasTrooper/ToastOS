@@ -11,4 +11,5 @@ void timer_config(uint32_t hz);
 uint64_t get_tick_count(void);
 uint64_t get_uptime_ns(void);
 uint64_t get_uptime_ms(void);
-uint64_t get_uptime_seconds(void); 
+uint64_t get_uptime_seconds(void);
+uint64_t get_ns_per_tick(void);

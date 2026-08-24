@@ -6,7 +6,8 @@
 typedef enum {
     THREAD_READY,
     THREAD_RUNNING,
-    THREAD_BLOCKD,
+    THREAD_BLOCKED,
+    THREAD_SLEEPING,
     THREAD_PAUSED,
     THREAD_DEAD
 } thread_state_t;
@@ -64,3 +65,4 @@ void nano_sleep(uint64_t nanoseconds);
 void sleep_seconds(uint64_t seconds);
 
 void timer_check_sleeping_tasks(void);
+void scheduler_time_slice_tick(void);
