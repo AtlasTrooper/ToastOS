@@ -4,12 +4,13 @@
 #include "process.h"
 #include "../drivers/timer.h"
 typedef enum {
-    THREAD_READY,
-    THREAD_RUNNING,
+    THREAD_READY, //ready to run
+    THREAD_RUNNING, //actively running
     THREAD_BLOCKED,
-    THREAD_SLEEPING,
+    THREAD_WAITING_FOR_LOCK,
     THREAD_PAUSED,
-    THREAD_DEAD
+    THREAD_SLEEPING, //sleeping a set amount of time
+    THREAD_DEAD //awaiting a reap
 } thread_state_t;
 
 typedef struct PACKED thread_t {
@@ -24,6 +25,14 @@ typedef struct PACKED thread_t {
     uint64_t time_elapsed;
     uint64_t wake_time; //ns since boot (8 bytes)
 } thread_t;
+
+typedef struct SEMAPHORE{
+    int max_count;
+    int current_count;
+    thread_t* first_waiting_task;
+    thread_t* last_waiting_task;
+
+}SEMAPHORE;
 
 void init_multitasking();
 void switch_to_task(thread_t* next_task);
@@ -64,5 +73,20 @@ void nano_sleep_until(uint64_t wake_time_ns);
 void nano_sleep(uint64_t nanoseconds);
 void sleep_seconds(uint64_t seconds);
 
+//PIT scheduler ticks
 void timer_check_sleeping_tasks(void);
 void scheduler_time_slice_tick(void);
+
+//Moves task to dead task list
+void terminate_task(void);//say hello to my little friend
+//frees up the dead task list
+void reap_all_tasks(void);
+//frees individual task and it's memory
+void reap_task(thread_t* task);//the grim sweeper
+
+SEMAPHORE* create_semaphore(int max);
+SEMAPHORE* create_mutex(void);
+void acquire_semaphore(SEMAPHORE* semaphore);
+void acquire_mutex(SEMAPHORE* semaphore);
+void release_semaphore(SEMAPHORE* semaphore);
+void release_mutex(SEMAPHORE* semaphore);

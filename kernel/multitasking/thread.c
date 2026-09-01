@@ -19,6 +19,7 @@ static volatile uint64_t time_slice_remaining = 0;
 thread_t* current_task_TCB = NULL;
 thread_t* t0 = NULL; //this is our "boot task"
 thread_t* shell_task = NULL;
+thread_t* terminator_task = NULL; //it will be back
 
 //Ready Task queue
 thread_t* first_ready_task = NULL;
@@ -27,6 +28,9 @@ thread_t* last_ready_task = NULL;
 //Sleeping Task queue
 thread_t* first_sleeping_task = NULL;
 thread_t* last_sleeping_task = NULL;
+
+//Dead tasks list
+thread_t* terminated_task_list = NULL;
 
 //Test tasks
 thread_t* t1 = NULL;
@@ -55,6 +59,7 @@ void init_multitasking() {
     update_task_time();
 
     shell_task = create_kernel_task((task_entry_t)init_shell, "tsh", 1);
+    terminator_task = create_kernel_task((task_entry_t)reap_all_tasks, "T-800", 2);
 
     //TEST
     t1 = create_kernel_task((task_entry_t)task1, "tomer", 2);
@@ -120,7 +125,7 @@ thread_t* create_kernel_task(task_entry_t eip, char*name, uint64_t pid) {
 
 void update_task_time(void) {
     uint64_t cur_time = get_uptime_ns();
-    uint64_t elapsed = last_time_check - cur_time;
+    uint64_t elapsed = cur_time - last_time_check;
     last_time_check = cur_time;
     if (!current_task_TCB) {
         CPU_idle_time += elapsed;
@@ -129,6 +134,7 @@ void update_task_time(void) {
     current_task_TCB->time_elapsed += elapsed;
 }
 
+//this isn't being used anymore, and will be removed soon
 thread_t* get_pid0() {
     return t0;
 }
@@ -173,6 +179,7 @@ void schedule(void) {
     if (first_ready_task != NULL) {
         thread_t* task = first_ready_task;
         first_ready_task = task->next;
+        //last_ready_task = (first_ready_task == NULL) ? NULL : last_ready_task;
         switch_to_task(task);
     } else if (current_task_TCB->state == THREAD_RUNNING) {
         time_slice_remaining = 0;
@@ -207,6 +214,7 @@ void unlock_schedule(void) {
     if(IRQ_disable_counter == 0) __asm__ volatile("sti");
 }
 
+//misc lock with task switch disable
 void lock_stuff(void) {
     __asm__ volatile("cli");
     IRQ_disable_counter++;
@@ -337,10 +345,44 @@ void scheduler_time_slice_tick(void) {
     unlock_stuff();
 }
 
+void terminate_task(void) {
+    lock_stuff();
+
+    lock_schedule();
+    current_task_TCB->next = terminated_task_list;
+    terminated_task_list = current_task_TCB;
+    unlock_schedule();
+
+    block_task(THREAD_DEAD);
+
+    unblock_task(terminator_task);
+
+    unlock_stuff();
+}
+
+void reap_all_tasks(void) {
+    thread_t* task;
+    lock_stuff();
+    while(terminated_task_list != NULL) {
+        task = terminated_task_list;
+        terminated_task_list = task->next;
+        reap_task(task);
+    }
+    block_task(THREAD_PAUSED);
+    unlock_stuff();
+}
+
+void reap_task(thread_t* task) {
+    kfree(task->rsp0 - NEW_TASK_KSTACK_SIZE);
+    kfree(task);
+}
+
 void task1() {
     while (1) {
-        printf(".");
-        yield();
+        //printf("%d\n", time_slice_remaining);
+        
+        //debug_print("EDENNNNNN\n");
+        //yield();
     }
 }
 
@@ -349,4 +391,64 @@ void task2() {
         printf("Tomerrrrr\n");
         yield();
     }
+}
+
+SEMAPHORE *create_semaphore(int max) {
+    SEMAPHORE * semaphore;
+
+    semaphore = kmalloc(sizeof(SEMAPHORE));
+    if(semaphore != NULL) {
+        semaphore->max_count = max;
+        semaphore->current_count = 0;
+        semaphore->first_waiting_task = NULL;
+        semaphore->last_waiting_task = NULL;
+    }
+}
+
+SEMAPHORE *create_mutex(void) {
+    return create_semaphore(1);
+}
+
+void acquire_semaphore(SEMAPHORE * semaphore) {
+    lock_stuff();
+    if(semaphore->current_count < semaphore->max_count) {
+        // We can acquire now
+        semaphore->current_count++;
+    } else {
+        // We have to wait
+        current_task_TCB->next = NULL;
+        if(semaphore->first_waiting_task == NULL) {
+            semaphore->first_waiting_task = current_task_TCB;
+        } else {
+            semaphore->last_waiting_task->next = current_task_TCB;
+        }
+        semaphore->last_waiting_task = current_task_TCB;
+        block_task(THREAD_WAITING_FOR_LOCK);    // This task will be unblocked when it can acquire the semaphore
+    }
+    unlock_stuff();
+}
+
+void acquire_mutex(SEMAPHORE * semaphore) {
+    acquire_semaphore(semaphore);
+}
+
+void release_semaphore(SEMAPHORE * semaphore) {
+    lock_stuff();
+
+    if(semaphore->first_waiting_task != NULL) {
+        // We need to wake up the first task that was waiting for the semaphore
+        // Note: "semaphore->current_count" remains the same (this task leaves and another task enters)
+
+        thread_t *task = semaphore->first_waiting_task;
+        semaphore->first_waiting_task = task->next;
+        unblock_task(task);
+    } else {
+        // No tasks are waiting
+        semaphore->current_count--;
+    }
+    unlock_stuff();
+}
+
+void release_mutex(SEMAPHORE * semaphore) {
+    release_semaphore(semaphore);
 }

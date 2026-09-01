@@ -3,7 +3,7 @@
 #include "../serial.h"
 #include "../idt/idt.h"
 #include "../shell/console.h"
-
+#include "../stdlib/stdio.h"
 #define PIT_BASE_FREQ     1193180
 #define PIT_CHANNEL0_PORT 0x40
 #define PIT_COMMAND_PORT  0x43
@@ -36,6 +36,9 @@ void timer_handler(system_state *sys) {
     tick_count++;
     timer_check_sleeping_tasks();
     scheduler_time_slice_tick();
+
+    debug_print("handling!\n");
+
     console_tick();
 }
 
