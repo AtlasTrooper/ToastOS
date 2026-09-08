@@ -505,7 +505,7 @@ void reap_task(task_t* task) {
         kfree(task->kstack_base);
     }
     kfree(task);
-    pid_release(pid);
+    pid_release(task->pid);
 }
 
 SEMAPHORE* create_semaphore(int max) {
