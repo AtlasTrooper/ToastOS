@@ -81,7 +81,7 @@ void kb_handler(system_state *sys) {
     }
 }
 
-void kb_init(void) {
+void init_kb(void) {
     caps_on = 0;
     shift   = 0;
     ctrl    = 0;

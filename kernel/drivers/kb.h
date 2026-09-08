@@ -33,4 +33,4 @@ void kb_enqueue(char c);
 int  kb_haschar(void);
 char kb_getchar(void);
 void kb_handler(system_state *sys);
-void kb_init(void);
+void init_kb(void);

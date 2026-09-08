@@ -11,7 +11,8 @@
 // #include "../mmu/vmm.h"
 #include "../mmu/heap.h"
 #include <cpuid.h>
-#include "../multitasking/thread.h"
+#include "../multitasking/task.h"
+#include "../shell/task_shell.h"  //cmd_ps / cmd_kill / cmd_status wrap these
 void init_shell(void);
 void readline(char *buf, int max);
 int  parse_args(char *line, char **argv, int max_args);
@@ -35,7 +36,9 @@ void cmd_pmmtest(int argc, char **argv);
 void cmd_vmmtest(int argc, char **argv);
 void cmd_heaptest(int argc, char **argv);
 
-void cmd_poll_task_time(int argc, char **argv);
+void cmd_ps    (int argc, char **argv);
+void cmd_kill  (int argc, char **argv);
+void cmd_status(int argc, char **argv);
 
 void print_banner(void);
 void print_prompt(void);
@@ -53,12 +56,14 @@ static const command_t commands[] = {
     { "echo",  cmd_echo,  "Prints the arguments following the command"                 },
     { "lsh",   cmd_lsh,   "Prints the (at most 8) most recent commands"               },
     {"meminfo", cmd_meminfo, "Prints a cheat sheet of the Os' mmu"}, 
-    {"pmmtest", cmd_pmmtest, "testing the pmm"},
-    {"vmmtest", cmd_vmmtest, "testing the vmm"},
-    {"heaptest", cmd_heaptest, "tests the kernel heap"},
+    //{"pmmtest", cmd_pmmtest, "testing the pmm"},
+    //{"vmmtest", cmd_vmmtest, "testing the vmm"},
+    //{"heaptest", cmd_heaptest, "tests the kernel heap"},
     { "memmap",   cmd_memmap,   "Dumps the Limine physical memory map"             },
     { "fetch", cmd_fetch, "it ain't a real OS without fetch(I love systen diagnostics)"},
-    { "poll", cmd_poll_task_time, "task time check and other info"},
+    { "ps",     cmd_ps,     "Lists every task's pid, name, state, and CPU time"        },
+    { "kill",   cmd_kill,   "Kills a task by pid - usage: kill <pid>"                   },
+    { "status", cmd_status, "Shows detailed status for one task - usage: status <pid>"  },
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };
 

@@ -20,7 +20,6 @@ void init_shell(void) {
 
         update_history(buf);
         shell_exec(buf);
-        //yield();
     }
 }
 
@@ -337,8 +336,6 @@ void cmd_heaptest(int argc, char **argv) {
         kfree(ptrs[i]);
     }
 
-    // In case the automatic trim threshold wasn't crossed by these frees,
-    // force it so the test result is deterministic.
     kheap_trim(0);
 
     uint64_t mapped_after_free = heap->mapped_end;
@@ -444,19 +441,53 @@ void cmd_fetch(int argc, char **argv) {
 
 }
 
-//TODO: note to self, add a 'reap' that frees dead tasks and make this into a proper taskinfo at some point
-void cmd_poll_task_time(int argc, char **argv) {
-    update_task_time();
-    thread_t* tracker = get_pid0();
-    printf("[TEST] Task time check:\n");
-    int looped = 0;
-    while (looped != 2) {
-        printf("%d : %s : %llu \n", tracker->pid, tracker->name, tracker->time_elapsed);
-        tracker = tracker->next;
-        if(tracker->pid == 1) looped ++;
+static int parse_pid_arg(const char *s, uint64_t *out) {
+    if (!s || !*s) return -1;
+    uint64_t value = 0;
+    for (const char *p = s; *p; p++) {
+        if (*p < '0' || *p > '9') return -1;
+        value = value * 10 + (uint64_t)(*p - '0');
     }
+    *out = value;
+    return 0;
 }
 
+void cmd_ps(int argc, char **argv) {
+    (void)argc; (void)argv;
+    shell_cmd_ps();
+}
+
+void cmd_kill(int argc, char **argv) {
+    if (argc < 2) {
+        printf("usage: kill <pid>\n");
+        return;
+    }
+
+    uint64_t pid;
+    if (parse_pid_arg(argv[1], &pid) != 0) {
+        printf("kill: '%s' is not a valid pid\n", argv[1]);
+        return;
+    }
+
+    shell_cmd_kill(pid);
+}
+
+void cmd_status(int argc, char **argv) {
+    if (argc < 2) {
+        printf("usage: status <pid>\n");
+        return;
+    }
+
+    uint64_t pid;
+    if (parse_pid_arg(argv[1], &pid) != 0) {
+        printf("status: '%s' is not a valid pid\n", argv[1]);
+        return;
+    }
+
+    shell_cmd_status(pid);
+}
+
+//TODO: purge tasks and free memory properly before an actual shutdown
 void cmd_exit(int argc, char **argv) {
     (void)argc; (void)argv;
     putstr("Halting CPU — adios amigo!\n");

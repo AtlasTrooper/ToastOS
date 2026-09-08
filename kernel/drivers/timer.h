@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "../idt/idt.h"
-#include "../multitasking/thread.h"
+#include "../multitasking/task.h"
 
 void timer_handler(system_state *sys);
 void timer_wait_t(uint32_t ticks);

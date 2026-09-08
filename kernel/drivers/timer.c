@@ -37,7 +37,7 @@ void timer_handler(system_state *sys) {
     timer_check_sleeping_tasks();
     scheduler_time_slice_tick();
 
-    debug_print("handling!\n");
+    //debug_print("handling!\n");
 
     console_tick();
 }

@@ -122,13 +122,13 @@ void isr_handler(system_state *sys) {
 }
 
 void irq_handler(system_state *sys) {
-    void (*handler)(system_state *sys);
-    handler = irq_map[sys->interr_num - 32];
-    if (handler) handler(sys);
-
     if (sys->interr_num >= 40)
         outb(PIC2_COMMAND, EOI);
     outb(PIC1_COMMAND, EOI);
+
+    void (*handler)(system_state *sys);
+    handler = irq_map[sys->interr_num - 32];
+    if (handler) handler(sys);
 }
 
 void irq_assign_handler(int irq, void (*handler)(system_state *sys)) {
