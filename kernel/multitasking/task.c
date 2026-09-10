@@ -152,7 +152,7 @@ void init_multitasking(void) {
     t0->name = "boot";
     t0->pid = 0;
     t0->state = TASK_RUNNING;
-    t0->parent = NULL;
+    //t0->parent = NULL;
     t0->next = NULL;
     t0->time_elapsed = 0;
     t0->waiting_for = NULL;
@@ -223,7 +223,7 @@ task_t* create_kernel_task(task_entry_t eip, char* name) {
 
     new_task->state = TASK_READY;
     new_task->next = NULL;
-    new_task->parent = NULL;
+    //new_task->parent = NULL;
 
     new_task->pid = pid_alloc();
 
@@ -439,13 +439,14 @@ int kill_task_by_pid(uint64_t pid) {
     task_t* task = pid_table_lookup(pid);
     if (task == NULL) return -1;
 
+    //protec de elder tasks
+    if ((task == t0) || (task == terminator_task) || (task == shell_task)) return -1;
+
+    
     if (task == current_task_TCB) {
         terminate_task();
         return 0;
     }
-
-    //protec de elder tasks
-    if (task == t0 || task == terminator_task) return -1;
 
     lock_stuff();
 
