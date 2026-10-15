@@ -2,7 +2,7 @@
 #include "../util.h"
 #include "../idt/idt.h"
 #include "../drivers/timer.h"
-#include "taskTable.h"
+
 typedef enum {
     TASK_READY,
     TASK_RUNNING,
@@ -37,24 +37,6 @@ typedef struct SEMAPHORE {
     task_t* first_waiting_task;
     task_t* last_waiting_task;
 };
-
-// typedef struct PACKED thread_t {
-//     task_t task;
-//     task_t* parent;
-// }thread_t;
-// typedef struct PACKED process_t {
-//     task_t p; //the actual process
-//     task_table_t* tid_table;
-
-//     thread_t* current_thread;
-//     thread_t* first_ready_thread;
-//     thread_t* last_ready_thread;
-//     thread_t* first_sleeping_thread;
-//     thread_t* last_sleeping_thread;
-
-//     thread_t* terminated_threads_list;
-
-// }process_t;                                           .
 
 //Elder tasks (cannot be killed)
 extern task_t* t0;

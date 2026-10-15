@@ -442,7 +442,6 @@ int kill_task_by_pid(uint64_t pid) {
     //protec de elder tasks
     if ((task == t0) || (task == terminator_task) || (task == shell_task)) return -1;
 
-    
     if (task == current_task_TCB) {
         terminate_task();
         return 0;

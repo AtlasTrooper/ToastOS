@@ -10,3 +10,8 @@
 a.out
 
 build/
+
+bochsout.txt
+bochsrc.txt
+disk.img
+serial.log
