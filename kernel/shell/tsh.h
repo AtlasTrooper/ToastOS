@@ -64,6 +64,7 @@ static const command_t commands[] = {
     { "ps",     cmd_ps,     "Lists every task's pid, name, state, and CPU time"        },
     { "kill",   cmd_kill,   "Kills a task by pid - usage: kill <pid>"                   },
     { "status", cmd_status, "Shows detailed status for one task - usage: status <pid>"  },
+    {"exec", NULL, "executes a binary in the file system that is passed in arg1"},
     { "exit",  cmd_exit,  "Gracefully halts the CPU"                                   }
 };
 

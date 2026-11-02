@@ -1,13 +1,21 @@
 .global context_switch
+.global task_first_run
 .type context_switch, @function
 
+.extern current_task_TCB
+.extern syscall_kernel_rsp
+.extern load_tss
+.extern update_task_time
+.extern kernel_task_startup
+.extern task_exit
+
+# offsets into task_t (pinned by _Static_asserts in task.h)
 .equ TCB_RSP, 16
 .equ TCB_RSP0, 24
 .equ TCB_CR3, 32
 
-#C side function call: void switch_to_task(thread_t* next_thread);
-
-#disable IRQ's before and enable them after
+# C side: void context_switch(task_t* next_task);
+# IRQs are already disabled by the caller (lock_schedule / lock_stuff).
 context_switch:
     pushq %rbx
     pushq %rbp
@@ -16,26 +24,34 @@ context_switch:
     pushq %r14
     pushq %r15
 
-    #save prev task addr
-    movq current_task_TCB(%rip), %rax # %rax = current tcb ptr addr
+    # save prev task's stack pointer
+    movq current_task_TCB(%rip), %rax
     movq %rsp, TCB_RSP(%rax)
 
-    #next task
-    movq %rdi, current_task_TCB(%rip)
-    movq %rdi, %rsi
+    # keep `next` in r12 cause callee-saved
+    # r12 was just saved above and gets restored from the new stack, so it's free to use.
+    movq %rdi, %r12
 
-    #TSS update
-    movq TCB_RSP0(%rsi), %rdi
-    call load_tss
+    # rsp is 8 mod 16 here, gotta align
+    subq $8, %rsp
 
-    #it's kinda self explanatory idk what to tell you
+    # update elapsed time to the task that was running, THEN switch current
     call update_task_time
 
-    #stack ptr switch to next task kernel stack
-    movq TCB_RSP(%rsi), %rsp
+    movq %r12, current_task_TCB(%rip)
 
-    #comp vaddr space
-    movq TCB_CR3(%rsi), %rax
+    # kernel stack the CPU uses for ring3->ring0 transitions:
+    #  - interrupts/exceptions via TSS.rsp0
+    #  - `syscall` has no TSS lookup, syscall_entry reads syscall_kernel_rsp
+    movq TCB_RSP0(%r12), %rdi
+    movq %rdi, syscall_kernel_rsp(%rip)
+    call load_tss
+
+    # switch to next task's kernel stack
+    movq TCB_RSP(%r12), %rsp
+
+    # switch address space only if dif
+    movq TCB_CR3(%r12), %rax
     movq %cr3, %rcx
     cmpq %rcx, %rax
     je .doneVAS
@@ -51,4 +67,12 @@ context_switch:
 
     retq
 
-
+# First thing every new task executes (context_switch `ret`s here).
+# On entry: rsp is 16-byte aligned, r12 = entry fn, r13 = arg0, r14 = arg1
+task_first_run:
+    call kernel_task_startup     # unlock_schedule(), syncs with lock across switch
+    movq %r13, %rdi
+    movq %r14, %rsi
+    call *%r12                   # kernel task body, or user_task_launcher(entry, user_rsp)
+    call task_exit               # the task function returned: terminate it
+    ud2

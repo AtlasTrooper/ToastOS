@@ -2,6 +2,7 @@
 #include "../io.h"
 #include "../serial.h"
 #include "../stdlib/stdio.h"
+#include "../multitasking/task.h"
 
 static IDT       idtr;
 static idt_entry idt_ent[256];
@@ -79,6 +80,23 @@ void kpanic(system_state *sys, const char *fmt, ...) {
     for (;;) asm("hlt");
 }
 
+/*
+ * A fault that came from ring3 (CS RPL == 3) only kills the offending task; the
+ * kernel carries on. Never returns: terminate_task() switches away from this
+ * task for good and the reaper frees it (and its address space) later.
+ */
+static int from_user(system_state *sys) {
+    return (sys->cs & 3) == 3 && current_task_TCB != NULL && current_task_TCB->is_user;
+}
+
+static void user_fault_kill(system_state *sys, const char *what) {
+    printf("\n[user fault] pid %d (%s): %s at rip=%016llx rsp=%016llx err=%llx\n",
+           (int)current_task_TCB->pid, current_task_TCB->name, what,
+           sys->rip, sys->rsp, sys->error_code);
+    terminate_task();
+    for (;;) yield();   //not reached
+}
+
 static void pfHandler(system_state *sys) {
     uint64_t cr2;
     asm volatile ("mov %%cr2, %0" : "=r"(cr2));
@@ -94,6 +112,11 @@ static void pfHandler(system_state *sys) {
     (ec & (1<<2)) ? "user" : "kernel", 
     (ec & (1<<3)) ? "reserved bit" : "", 
     (ec & (1<<4)) ? "NX-violation" : "");
+
+    if (from_user(sys)) {
+        user_fault_kill(sys, "page fault");
+        return;
+    }
 
     kpanic(sys, "Unhandled page fault at %016llx", cr2);
 
@@ -117,6 +140,11 @@ void isr_handler(system_state *sys) {
     }
     
     if (sys->interr_num < 32) {
+        //NMI / double fault / machine check are never the task's "fault"
+        if (from_user(sys) && sys->interr_num != 2 && sys->interr_num != 8 && sys->interr_num != 18) {
+            user_fault_kill(sys, excep_trace[sys->interr_num]);
+            return;
+        }
         kpanic(sys, "Exception: %s", excep_trace[sys->interr_num]);
     }
 }

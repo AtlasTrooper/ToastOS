@@ -1,11 +1,14 @@
 #include "task.h"
 #include "pidTable.h"
 #include "../mmu/heap.h"
+#include "../mmu/vmm.h"
 #include "../stdlib/stdio.h"
 #include "../shell/tsh.h"
 
-#define NEW_TASK_KSTACK_SIZE 4096
+#define NEW_TASK_KSTACK_SIZE 16384   //was 4096: a ring3 task also takes syscalls + IRQ frames on this stack
 #define TIME_SLICE_IN_NS 50000000ULL
+#define USER_TASK 1
+#define KERNEL_TASK 0
 
 static volatile uint64_t last_time_check;
 static volatile uint64_t IRQ_disable_counter = 0;
@@ -16,6 +19,8 @@ static volatile int task_switches_postponed_flag = 0;
 static volatile uint64_t CPU_idle_time = 0;
 
 static volatile uint64_t time_slice_remaining = 0;
+
+extern const uint8_t hello_blob_start[], hello_blob_end[];
 
 task_t* current_task_TCB = NULL;
 task_t* t0 = NULL; //this is our "boot task"
@@ -149,6 +154,7 @@ void init_multitasking(void) {
     pid_table_init();
 
     t0 = (task_t*)kmalloc(sizeof(task_t));
+    memset(t0, 0, sizeof(task_t));
     t0->name = "boot";
     t0->pid = 0;
     t0->state = TASK_RUNNING;
@@ -157,14 +163,14 @@ void init_multitasking(void) {
     t0->time_elapsed = 0;
     t0->waiting_for = NULL;
     t0->kstack_base = NULL; //t0 runs on the original boot stack, nothing to free later
+    t0->is_user = 0;
+    t0->vmm_ctx = vmm_get_kernel_context();
 
     uint64_t boot_rsp;
     __asm__ volatile ("movq %%rsp, %0" : "=r"(boot_rsp));
     t0->rsp0 = (void*)boot_rsp;
 
-    uint64_t boot_cr3;
-    __asm__ volatile ("movq %%cr3, %0" : "=r"(boot_cr3));
-    t0->cr3 = (void*)boot_cr3;
+    t0->cr3 = (void*)t0->vmm_ctx->pml_phys;
 
     current_task_TCB = t0;
     last_time_check = 0;
@@ -174,66 +180,115 @@ void init_multitasking(void) {
 
     shell_task = create_kernel_task((task_entry_t)init_shell, "tsh");
     terminator_task = create_kernel_task((task_entry_t)reap_all_tasks, "T-800");
+    
+    create_user_task(hello_blob_start, hello_blob_end - hello_blob_start, 0, "hello");
 
     debug_print("[let the multitasking begin!]\n");
 
     while (1) yield();
 }
 
+/*
+ * Every new task starts in task_first_run (ctx_switch.s), which calls this once
+ * to balance the lock_schedule() that was held across the switch, then calls the
+ * task's entry function. The old version returned straight into the entry
+ * function, which left it with a misaligned stack and no return address.
+ */
 void kernel_task_startup(void) {
     unlock_schedule();
-    /*
-        might add more stuff here
-        potential idea would be to take a func ptr
-        param so that tasks can have their own custom
-        startup
-    */
 }
 
-task_t* create_kernel_task(task_entry_t eip, char* name) {
+/* Called (via task_first_run) as the "entry function" of every user task. */
+static void user_task_launcher(uint64_t entry, uint64_t user_rsp) {
+    enter_usermode(entry, user_rsp);
+}
+
+/*
+ * Creates a task (could be either user or kernel), and sets up a stack for it,
+ * with the apropriate arguments, with those values later being popd during a task switch and
+ * placed into the actual registers that they should be in. After that we set up the task data
+ * needed for the scheduler and the rest of the system to understand it properly, before pushing it
+ * onto the ready task list.
+ */
+static task_t* task_create_internal(char* name, void* fn, uint64_t arg0, uint64_t arg1,
+                                    vmm_context_t* ctx, int is_user) {
     task_t* new_task = (task_t*)kmalloc(sizeof(task_t));
     if (!new_task) return NULL;
+    memset(new_task, 0, sizeof(task_t));
 
     void* new_task_stack = kmalloc(NEW_TASK_KSTACK_SIZE);
     if (!new_task_stack) {
-        kfree(new_task); //used to leak the TCB here on allocation failure (:
+        kfree(new_task);
         return NULL;
     }
 
-    uint64_t stack_top = (uint64_t)new_task_stack + NEW_TASK_KSTACK_SIZE;
-    stack_top &= ~0xF;
+    uint64_t stack_top = ((uint64_t)new_task_stack + NEW_TASK_KSTACK_SIZE) & ~0xFULL;
+    uint64_t* sp = (uint64_t*)stack_top;
 
-    uint64_t* stack_ptr = (uint64_t*)stack_top;
-
-    *(--stack_ptr) = (uint64_t)eip;
-    *(--stack_ptr) = (uint64_t)kernel_task_startup;
-
-    for (int i = 0; i < 6; i++) { *(--stack_ptr) = 0; }
+    *(--sp) = (uint64_t)task_first_run;
+    *(--sp) = 0;             //rbx
+    *(--sp) = 0;             //rbp
+    *(--sp) = (uint64_t)fn;  //r12
+    *(--sp) = arg0;          //r13
+    *(--sp) = arg1;          //r14
+    *(--sp) = 0;             //r15
 
     new_task->name = name;
-    new_task->rsp = (void*)stack_ptr;
+    new_task->rsp = (void*)sp;
     new_task->rsp0 = (void*)stack_top;
-    new_task->kstack_base = new_task_stack; //remember the *real* base for freeing later
+    new_task->kstack_base = new_task_stack;
     new_task->time_elapsed = 0;
     new_task->waiting_for = NULL;
-
-    uint64_t cur_cr3;
-    __asm__ volatile ("movq %%cr3, %0" : "=r"(cur_cr3));
-    new_task->cr3 = (void*)cur_cr3;
-
+    new_task->vmm_ctx = ctx;
+    new_task->cr3 = (void*)ctx->pml_phys;   //NOT "whatever cr3 is right now": the caller might be a user task
+    new_task->is_user = is_user;
     new_task->state = TASK_READY;
     new_task->next = NULL;
-    //new_task->parent = NULL;
 
     new_task->pid = pid_alloc();
+
+    //register in the pid table BEFORE it can run (and possibly get killed)
+    if (pid_table_insert(new_task) != 0) {
+        pid_release(new_task->pid);
+        kfree(new_task_stack);
+        kfree(new_task);
+        return NULL;
+    }
 
     lock_schedule();
     ready_push(new_task);
     unlock_schedule();
 
-    pid_table_insert(new_task);
-
     return new_task;
+}
+
+task_t* create_kernel_task(task_entry_t eip, char* name) {
+    return task_create_internal(name, (void*)eip, 0, 0, vmm_get_kernel_context(), KERNEL_TASK);
+}
+
+task_t* create_user_task(const void* image, size_t image_size, size_t entry_offset, char* name) {
+    if (!image || image_size == 0 || entry_offset >= image_size) return NULL;
+
+    vmm_context_t* ctx = vmm_create_context();
+    if (!ctx) return NULL;
+
+    /*
+     * Code is mapped RW for now so a flat blob can carry its own data.
+     * Tighten to RX once you have a real loader that knows the segments.
+     */
+    if (vmm_user_alloc(ctx, USER_CODE_BASE, image_size, VMM_FLAGS_USER_RW, image, image_size) != 0 ||
+        vmm_user_alloc(ctx, USER_STACK_TOP - USER_STACK_SIZE, USER_STACK_SIZE,
+                       VMM_FLAGS_USER_RW | vmm_nx_flag(), NULL, 0) != 0) {
+        vmm_destroy_context(ctx);
+        return NULL;
+    }
+
+    uint64_t entry    = USER_CODE_BASE + entry_offset;
+    uint64_t user_rsp = USER_STACK_TOP - 8;  //SysV: rsp % 16 == 8 on function entry
+
+    task_t* t = task_create_internal(name, (void*)user_task_launcher, entry, user_rsp, ctx, USER_TASK);
+    if (!t) vmm_destroy_context(ctx);
+    return t;
 }
 
 void update_task_time(void) {
@@ -304,6 +359,9 @@ void schedule(void) {
     task_t* task = ready_pop();
     if (task != current_task_TCB) {
         switch_to_task(task);
+    } else {
+        task->state = TASK_RUNNING;
+        time_slice_remaining = TIME_SLICE_IN_NS;
     }
 }
 
@@ -420,6 +478,17 @@ void scheduler_time_slice_tick(void) {
     unlock_stuff();
 }
 
+/*
+ * The reaper is only woken if it is actually parked. Waking it while it was
+ * already READY/RUNNING pushed it onto the ready queue twice, which turns the
+ * queue into a cycle. Dis bad, we no like
+ */
+static void wake_reaper(void) {
+    if (terminator_task != NULL && terminator_task->state == TASK_PAUSED) {
+        unblock_task(terminator_task);
+    }
+}
+
 void terminate_task(void) {
     lock_stuff();
 
@@ -430,9 +499,14 @@ void terminate_task(void) {
 
     block_task(TASK_DEAD);
 
-    unblock_task(terminator_task);
+    wake_reaper();
 
     unlock_stuff();
+}
+
+void task_exit(void) {
+    terminate_task();
+    for (;;) yield(); //not reached: a DEAD task is never scheduled again
 }
 
 int kill_task_by_pid(uint64_t pid) {
@@ -475,7 +549,7 @@ int kill_task_by_pid(uint64_t pid) {
     task->next = terminated_task_list;
     terminated_task_list = task;
 
-    unblock_task(terminator_task);
+    wake_reaper();
 
     unlock_stuff();
     return 0;
@@ -498,14 +572,25 @@ void reap_all_tasks(void) {
 }
 
 void reap_task(task_t* task) {
-    if(!task)return;
+    if (!task) return;
 
-    pid_table_remove(task->pid);
+    uint64_t pid = task->pid; //grab it now: the TCB is freed below (pid_release used to read freed memory)
+
+    pid_table_remove(pid);
+
+    /*
+    the reaper runs on the kernel address space and the victim is never the running task,
+    so tearing its address space down here is safe
+    */
+    if (task->is_user && task->vmm_ctx != NULL) {
+        vmm_destroy_context(task->vmm_ctx);
+    }
+
     if (task->kstack_base != NULL) {
         kfree(task->kstack_base);
     }
     kfree(task);
-    pid_release(task->pid);
+    pid_release(pid);
 }
 
 SEMAPHORE* create_semaphore(int max) {

@@ -80,7 +80,7 @@ void init_kheap(void) {
     k_heap->mapped_end = KHEAP_VIRT_BASE;
     k_heap->limit      = KHEAP_VIRT_BASE + (1024ULL * 1024 * 64);
     k_heap->flags      = VMM_FLAGS_KERNEL_RW;
-    k_heap->vmm_ctx    = get_current_context();
+    k_heap->vmm_ctx    = vmm_get_kernel_context();
 
     debug_print_hex("Kernel heap base:  ", k_heap->base_addr);
     debug_print_hex("Kernel heap limit: ", k_heap->limit);

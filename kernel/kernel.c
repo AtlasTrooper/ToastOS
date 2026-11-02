@@ -19,6 +19,7 @@
 #include "mmu/vmm.h"
 #include "mmu/heap.h"
 #include "multitasking/task.h"
+#include "syscalls/syscall.h"
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -46,6 +47,7 @@ void _start(void) {
 
     initGDT();
     initIDT();
+    init_syscall();
     init_timer();
     init_rtc();
     init_kb();

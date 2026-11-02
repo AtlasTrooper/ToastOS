@@ -41,6 +41,13 @@ void initGDT(void) {
          GDT_READABLE, 
          GDT_LONG_MODE);
 
+    /*
+     * I/O permission bitmap offset. Left at 0 the CPU treats the first bytes of the
+     * TSS itself as an I/O bitmap, which lets ring3 touch low I/O ports. Pointing it
+     * at/after the TSS limit means "no bitmap": every port access from ring3 faults.
+     */
+    tss.iopb = sizeof(TSS_descriptor);
+
     encode_tss_seg((uint64_t)&tss);
 
     gdtr.lim = sizeof(gdt_table) - 1;

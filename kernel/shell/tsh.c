@@ -214,7 +214,7 @@ printf("  Memory:                 %llu MiB total  %llu MiB used  %llu MiB free\n
            total_mib, used_mib, free_mib);
 putstr("==============================================\n\n");
 putstr("==================== VMM ====================\n");
-printf("  Active PML4 (CR3):      0x%016llx\n", get_current_context()->pml_phys);
+printf("  Active PML4 (CR3):      0x%016llx\n", vmm_get_kernel_context()->pml_phys);
 putstr("  Page table levels:      4  (PML4 -> PDPT -> PD -> PT)\n");
 putstr("  Page size:              4 KiB\n");
 putstr("  Table walk:             HHDM\n");
@@ -272,7 +272,7 @@ void cmd_vmmtest(int argc, char **argv) {
     uint64_t phys = pmm_alloc();
     printf("\nPHYS %p\n", phys);
     uint64_t virt = 0xFFFF900000000000ULL;
-    vmm_map_page(get_current_context(), virt, phys, VMM_FLAGS_KERNEL_RW);
+    vmm_map_page(vmm_get_kernel_context(), virt, phys, VMM_FLAGS_KERNEL_RW);
 
     volatile uint64_t *test_ptr = (volatile uint64_t*)virt;
     *test_ptr = 0x123456789ABCDEF0ULL;
