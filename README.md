@@ -79,6 +79,17 @@ Also added a proper kernel panic(finally) and started expanding the idividual ex
 
 ---
 
+### Stage 3 - Multitasking and Ring3 (In progress)
+This is what I have been working on over the last few months, slowly, very slowly(thanks exam season lol).
+From a dumb co-op scheduler to a less dumb round robin preemptive scheduler, we now have a very basic multitasking system
+that uses kernel stacks per task. This lays the groundwork for threads and processes later on but for now they will be generically
+named tasks, and while that is innefficient (as this means that tasks like the shell, will not be close to their child tasks, in this example a shell function, and so instead of the shell managing resources for it's concurrently running child functions, we get the shell and each of those tasks fighting for cpu time, which
+is arguablly quite terrible), it's something that I will come back to in the future, as it works for now and that's dandy.
+
+As for Ring3, we added user pages in the vmm and made it so we can allocate user memory in the heap. Combine that with the task system and we can now
+create user tasks. To run them we added a simple stub to gaslight the system into thinking we were already in ring3(using the sysretq strategy). However, executing these without kernel functions is lame, so I added a very rudementary syscall handler, and now we have a couple basic syscalls impelemented.
+![First test of dummy asm stub running code in ring3 with a user task and syscall to printf!!!](docs/screenshots/ring3TEST.png)
+
 ## Progress updates
 
 ### First successfull hardware test!
