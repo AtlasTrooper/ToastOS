@@ -20,7 +20,7 @@ static volatile uint64_t CPU_idle_time = 0;
 
 static volatile uint64_t time_slice_remaining = 0;
 
-extern const uint8_t hello_blob_start[], hello_blob_end[];
+// extern const uint8_t hello_blob_start[], hello_blob_end[];
 
 task_t* current_task_TCB = NULL;
 task_t* t0 = NULL; //this is our "boot task"
@@ -181,7 +181,7 @@ void init_multitasking(void) {
     shell_task = create_kernel_task((task_entry_t)init_shell, "tsh");
     terminator_task = create_kernel_task((task_entry_t)reap_all_tasks, "T-800");
     
-    create_user_task(hello_blob_start, hello_blob_end - hello_blob_start, 0, "hello");
+    //create_user_task(hello_blob_start, hello_blob_end - hello_blob_start, 0, "hello");
 
     debug_print("[let the multitasking begin!]\n");
 

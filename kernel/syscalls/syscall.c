@@ -4,7 +4,7 @@
 
 #define ERR ((uint64_t)-1)
 
-/* printf can't be called directly from ring3 (varargs, kernel pointers, ring0
+/* ex. printf can't be called directly from ring3 (varargs, kernel pointers, ring0
  * code), so ring3 gets a write(fd, buf, len) and the kernel prints for it. */
 static uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t len)
 {
