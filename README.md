@@ -87,7 +87,7 @@ named tasks, and while that is innefficient (as this means that tasks like the s
 is arguablly quite terrible), it's something that I will come back to in the future, as it works for now and that's dandy.
 
 As for Ring3, we added user pages in the vmm and made it so we can allocate user memory in the heap. Combine that with the task system and we can now
-create user tasks. To run them we added a simple stub to gaslight the system into thinking we were already in ring3(using the sysret strategy). However, executing these without kernel functions is lame, so I added a very rudementary syscall handler(which I've since been improving to utilize x macros so it's more streamlined and so I don't need two billion wrapper functions for the many syscalls we will need), and now we have a couple basic syscalls impelemented.
+create user tasks. To run them we added a simple stub to gaslight the system into thinking we were already in ring3(using the sysret method). However, executing these without kernel functions is lame, so I added a very rudementary syscall handler(which I've since been improving to utilize x macros so it's more streamlined and so I don't need two billion wrapper functions for the many syscalls we will need), and now we have a couple basic syscalls impelemented.
 ![First test of dummy asm stub running code in ring3 with a user task and syscall to printf!!!](docs/screenshots/ring3TEST.png)
 
 ## Progress updates
