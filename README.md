@@ -21,11 +21,11 @@ Development follows 10 core stages, each building on the last.
 | 1 | Shell | Complete |
 | 2 | Dynamic Memory Allocation | Done|
 | 2.5 | Transition to 64-bit | Done |
-| 3 | Multitasking and Ring 3 | In prog |
+| 3 | Multitasking and Ring 3 | Done |
 | 3.5| ACPI/AHCI pci device drivers and proper shutdown
 | 4 | Main and boot partition file systems
 | 5 | Usermode stdlib (mussl or glibc)
-| 6 | System-call layer
+| 6 | System-call layer, Loader and ELF parser
 | 7 | Running Software (bash, Doom, etc.) |  |
 | 8 | GUI |  |
 | 9 | Device drivers (sound, networking card)
@@ -87,7 +87,7 @@ named tasks, and while that is innefficient (as this means that tasks like the s
 is arguablly quite terrible), it's something that I will come back to in the future, as it works for now and that's dandy.
 
 As for Ring3, we added user pages in the vmm and made it so we can allocate user memory in the heap. Combine that with the task system and we can now
-create user tasks. To run them we added a simple stub to gaslight the system into thinking we were already in ring3(using the sysretq strategy). However, executing these without kernel functions is lame, so I added a very rudementary syscall handler, and now we have a couple basic syscalls impelemented.
+create user tasks. To run them we added a simple stub to gaslight the system into thinking we were already in ring3(using the sysretq strategy). However, executing these without kernel functions is lame, so I added a very rudementary syscall handler(which I've since been improving), and now we have a couple basic syscalls impelemented.
 ![First test of dummy asm stub running code in ring3 with a user task and syscall to printf!!!](docs/screenshots/ring3TEST.png)
 
 ## Progress updates
