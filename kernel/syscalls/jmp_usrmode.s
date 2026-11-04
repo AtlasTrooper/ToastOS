@@ -18,12 +18,13 @@ saved_user_rsp:
 
 # void init_syscall(void)
 # Call once at boot, after the GDT is loaded.
-# GDT layout this assumes (STAR below):
+# GDT layout:
 #   0x00 null
 #   0x08 kernel code (64-bit)      <- SYSCALL loads CS = 0x08
 #   0x10 kernel data               <- SYSCALL loads SS = 0x10
 #   0x18 user data  (DPL 3)        <- SYSRET loads SS = 0x18 | 3
 #   0x20 user code  (DPL 3, L=1)   <- SYSRET loads CS = 0x20 | 3
+#   0x28 TSS
 init_syscall:
     # EFER.SCE = 1 (enables syscall/sysret)
     movl $0xc0000080, %ecx
@@ -52,7 +53,7 @@ init_syscall:
 
     ret
 
-# void enter_usermode(uint64_t rip /*rdi*/, uint64_t rsp /*rsi*/)  -- never returns
+# void enter_usermode(uint64_t rip /*rdi*/, uint64_t rsp /*rsi*/)  -- one way trip, no return
 # Used for a task's FIRST trip to ring3 (sysret is only for returning from a syscall).
 enter_usermode:
     cli

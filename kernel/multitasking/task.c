@@ -20,7 +20,7 @@ static volatile uint64_t CPU_idle_time = 0;
 
 static volatile uint64_t time_slice_remaining = 0;
 
-// extern const uint8_t hello_blob_start[], hello_blob_end[];
+extern const uint8_t hello_blob_start[], hello_blob_end[];
 
 task_t* current_task_TCB = NULL;
 task_t* t0 = NULL; //this is our "boot task"
@@ -181,7 +181,7 @@ void init_multitasking(void) {
     shell_task = create_kernel_task((task_entry_t)init_shell, "tsh");
     terminator_task = create_kernel_task((task_entry_t)reap_all_tasks, "T-800");
     
-    //create_user_task(hello_blob_start, hello_blob_end - hello_blob_start, 0, "hello");
+    create_user_task(hello_blob_start, hello_blob_end - hello_blob_start, 0, "hello");
 
     debug_print("[let the multitasking begin!]\n");
 
@@ -274,8 +274,8 @@ task_t* create_user_task(const void* image, size_t image_size, size_t entry_offs
 
     /*
      * Code is mapped RW for now so a flat blob can carry its own data.
-     * Tighten to RX once you have a real loader that knows the segments.
-     */
+     * Update when you got a real loader pal
+    */
     if (vmm_user_alloc(ctx, USER_CODE_BASE, image_size, VMM_FLAGS_USER_RW, image, image_size) != 0 ||
         vmm_user_alloc(ctx, USER_STACK_TOP - USER_STACK_SIZE, USER_STACK_SIZE,
                        VMM_FLAGS_USER_RW | vmm_nx_flag(), NULL, 0) != 0) {
