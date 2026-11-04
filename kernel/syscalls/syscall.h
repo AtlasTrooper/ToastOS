@@ -3,25 +3,18 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../stdlib/stdio.h"
 
-/* Syscall num/id */
-enum {
-    SYS_WRITE  = 0,
-    SYS_EXIT   = 1,
-    SYS_GETPID = 2,
-    SYS_YIELD  = 3,
-    SYS_SLEEP  = 4,
-};
+#define SYSCALL_TABLE \
+    X(0, sys_write,  "SYS_WRITE" , 3, usr_write,    uint64_t, (int fd, const char *buf, size_t len),                  ((uint64_t)fd, (uint64_t)buf, (uint64_t)len, 0, 0)) \
+    X(1, sys_exit,   "SYS_EXIT",   1, usr_exit,     void,     (int code),                                             ((uint64_t)code, 0, 0, 0, 0)) \
+    X(2, sys_getpid, "SYS_GETPID", 0, usr_getpid,   uint64_t, (void),                                                 (0, 0, 0, 0, 0)) \
+    X(3, sys_yield,  "SYS_YIELD",  0, usr_yield,    void,     (void),                                                 (0, 0, 0, 0, 0)) \
+    X(4, sys_sleep,  "SYS_SLEEP",  1, usr_sleep_ms, void,     (uint64_t ms),                                          (ms, 0, 0, 0, 0))
 
-/* Kernel side */
 void init_syscall(void);
 uint64_t syscall_handler(uint64_t num, uint64_t a1, uint64_t a2,
                          uint64_t a3, uint64_t a4, uint64_t a5);
 
-/* User side: clean inline assembly wrappers matching x86_64 calling conventions 
- * Registers: rax=num, rdi=a1, rsi=a2, rdx=a3, r10=a4, r9=a5
- */
 static inline uint64_t syscall(uint64_t num, uint64_t a1, uint64_t a2, 
                                uint64_t a3, uint64_t a4, uint64_t a5)
 {
@@ -41,31 +34,18 @@ static inline uint64_t syscall(uint64_t num, uint64_t a1, uint64_t a2,
     return ret;
 }
 
-/* User helpers */
-static inline uint64_t usr_write(int fd, const char *buf, size_t len)
-{
-    return syscall(SYS_WRITE, (uint64_t)fd, (uint64_t)buf, (uint64_t)len, 0, 0);
-}
+#define UNPACK_ARGS(a1, a2, a3, a4, a5) a1, a2, a3, a4, a5
 
-static inline void usr_exit(int code)
-{
-    syscall(SYS_EXIT, (uint64_t)code, 0, 0, 0, 0);
-    for (;;) { }
+#define X(id, func, str, nargs, usr_func, ret_type, params, args) \
+static inline ret_type usr_func params { \
+    uint64_t _r = syscall(id, UNPACK_ARGS args); \
+    if (id == 1) { for(;;); } \
+    if (!__builtin_types_compatible_p(ret_type, void)) { \
+        return (ret_type)_r; \
+    } \
 }
-
-static inline uint64_t usr_getpid(void) 
-{ 
-    return syscall(SYS_GETPID, 0, 0, 0, 0, 0); 
-}
-
-static inline void usr_yield(void)  
-{ 
-    syscall(SYS_YIELD, 0, 0, 0, 0, 0); 
-}
-
-static inline void usr_sleep_ms(uint64_t ms) 
-{ 
-    syscall(SYS_SLEEP, ms, 0, 0, 0, 0); 
-}
+SYSCALL_TABLE
+#undef X
+#undef UNPACK_ARGS
 
 #endif

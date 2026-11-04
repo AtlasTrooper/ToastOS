@@ -5,17 +5,36 @@
 
 #define WRITE_BUFF_SIZE 128
 #define ERR ((uint64_t)-1)
-#define SYSCALL_COUNT (sizeof(syscall_table) / sizeof(syscall_table[0]))
 
 typedef uint64_t (*syscall_fn_t)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
-struct syscall_entry {
+#define X(id, func, str, nargs, usr_func, ret_type, params, args) uint64_t func(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+SYSCALL_TABLE
+#undef X
+
+typedef enum {
+    #define X(id, func, str, nargs, usr_func, ret_type, params, args) SYSCALL_##func = id,
+    SYSCALL_TABLE
+    #undef X
+    SYSCALL_COUNT
+} syscall_id_t;
+
+typedef struct {
     syscall_fn_t func;
-    uint8_t nargs;
+    const char *name;
+    int num_args;
+} syscall_entry_t;
+
+const syscall_entry_t syscall_table[] = {
+    #define X(id, func, str, nargs, usr_func, ret_type, params, args) [id] = { func, str, nargs },
+    SYSCALL_TABLE
+    #undef X
 };
+
 #pragma region Syscall_Implementations
-static uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t len)
+uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t len, uint64_t nop4, uint64_t nop5)
 {
+    (void)nop4; (void)nop5;
     if (fd != 1 && fd != 2)
         return ERR;
 
@@ -41,69 +60,36 @@ static uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t len)
     return done;
 }
 
-static uint64_t sys_exit(uint64_t code)
-{
+uint64_t sys_exit(uint64_t code, uint64_t nop2, uint64_t nop3, uint64_t nop4, uint64_t nop5)
+{   
+    (void)nop2; (void)nop3; (void)nop4; (void)nop5;
+
     printf("[pid %d exited with code %d]\n", (int)current_task_TCB->pid, (int)code);
     terminate_task();
     for (;;) yield();
     return 0;
 }
 
-static uint64_t sys_getpid(void)
+uint64_t sys_getpid(uint64_t nop1, uint64_t nop2, uint64_t nop3, uint64_t nop4, uint64_t nop5)
 {
+    (void)nop1; (void)nop2; (void)nop3; (void)nop4; (void)nop5;
     return current_task_TCB->pid;
 }
 
-static uint64_t sys_yield(void)
+uint64_t sys_yield(uint64_t nop1, uint64_t nop2, uint64_t nop3, uint64_t nop4, uint64_t nop5)
 {
+    (void)nop1; (void)nop2; (void)nop3; (void)nop4; (void)nop5;
     yield();
     return 0;
 }
 
-static uint64_t sys_sleep(uint64_t milliseconds)
+uint64_t sys_sleep(uint64_t milliseconds, uint64_t nop2, uint64_t nop3, uint64_t nop4, uint64_t nop5)
 {
+    (void)nop2; (void)nop3; (void)nop4; (void)nop5;
     nano_sleep(milliseconds * 1000000ULL);
     return 0;
 }
 #pragma endregion Syscall_Implementations
-
-static uint64_t wrap_sys_write(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
-{
-    (void)a4; (void)a5;
-    return sys_write(a1, a2, a3);
-}
-
-static uint64_t wrap_sys_exit(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
-{
-    (void)a2; (void)a3; (void)a4; (void)a5;
-    return sys_exit(a1);
-}
-
-static uint64_t wrap_sys_getpid(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
-{
-    (void)a1; (void)a2; (void)a3; (void)a4; (void)a5;
-    return sys_getpid();
-}
-
-static uint64_t wrap_sys_yield(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
-{
-    (void)a1; (void)a2; (void)a3; (void)a4; (void)a5;
-    return sys_yield();
-}
-
-static uint64_t wrap_sys_sleep(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
-{
-    (void)a2; (void)a3; (void)a4; (void)a5;
-    return sys_sleep(a1);
-}
-
-static const struct syscall_entry syscall_table[] = {
-    [SYS_WRITE]  = { wrap_sys_write, 3 },
-    [SYS_EXIT]   = { wrap_sys_exit,  1 },
-    [SYS_GETPID] = { wrap_sys_getpid, 0 },
-    [SYS_YIELD]  = { wrap_sys_yield,  0 },
-    [SYS_SLEEP]  = { wrap_sys_sleep,  1 },
-};
 
 uint64_t syscall_handler(uint64_t num, uint64_t a1, uint64_t a2,
                          uint64_t a3, uint64_t a4, uint64_t a5)
@@ -112,8 +98,6 @@ uint64_t syscall_handler(uint64_t num, uint64_t a1, uint64_t a2,
         printf("unknown syscall %d\n", (int)num);
         return ERR;
     }
-
-    (void)a4; (void)a5;
 
     return syscall_table[num].func(a1, a2, a3, a4, a5);
 }
