@@ -21,10 +21,10 @@ Development follows 10 core stages, each building on the last.
 | 1 | Shell | Complete |
 | 2 | Dynamic Memory Allocation | Done|
 | 2.5 | Transition to 64-bit | Done |
-| 3 | Multitasking and Ring 3 | Done |
+| 3 | Multitasking and Ring 3 Support | Done |
 | 3.5| ACPI/AHCI pci device drivers and proper shutdown
 | 4 | Main and boot partition file systems
-| 5 | Usermode stdlib (mussl or glibc)
+| 5 | Usermode(move the shell to userspace) and stdlib (mussl or glibc)
 | 6 | System-call layer, Loader and ELF parser
 | 7 | Running Software (bash, Doom, etc.) |  |
 | 8 | GUI |  |
